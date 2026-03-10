@@ -7,13 +7,13 @@ class Config:
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')
     PANIERS = [5000, 10000, 25000, 50000, 100000]
 
-    # Email
-    MAIL_SERVER = 'smtp.gmail.com'
+    # Email Brevo
+    MAIL_SERVER = 'smtp-relay.brevo.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = 'jeanhuguesekongo9@gmail.com'
+    MAIL_USERNAME = 'a4756b001@smtp-brevo.com'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = 'jeanhuguesekongo9@gmail.com'
+    MAIL_DEFAULT_SENDER = 'a4756b001@smtp-brevo.com'
     ADMIN_EMAIL = 'jeanhuguesekongo9@gmail.com'
 
     @staticmethod
