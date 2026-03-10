@@ -3,12 +3,14 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_mail import Mail
 from config import config
 from .models import db, bcrypt, Utilisateur
 
 migrate = Migrate()
 login_manager = LoginManager()
 limiter = Limiter(key_func=get_remote_address)
+mail = Mail()
 
 login_manager.login_view = "auth.connexion"
 login_manager.login_message = "Veuillez vous connecter pour acceder a cette page."
@@ -27,6 +29,7 @@ def create_app(config_name="default"):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     limiter.init_app(app)
+    mail.init_app(app)
 
     from .auth import auth as auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")

@@ -1,7 +1,9 @@
-﻿from flask import Blueprint, render_template, redirect, url_for, flash, request
+﻿from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
+from flask_mail import Message
 from datetime import datetime
 from ..models import db, Utilisateur, Profil, AuditLog
+from .. import mail
 
 auth = Blueprint("auth", __name__)
 
@@ -32,6 +34,15 @@ def inscription():
         db.session.commit()
         AuditLog.log(user.id, "inscription", f"Email: {email}", ip=request.remote_addr)
         db.session.commit()
+        try:
+            msg = Message(
+                subject="Nouvel adherent - TontineSecure",
+                recipients=[current_app.config["ADMIN_EMAIL"]],
+                body=f"Un nouvel utilisateur vient de s'inscrire.\n\nEmail : {email}\nDate : {datetime.utcnow().strftime('%d/%m/%Y a %H:%M')}\n\nConnectez-vous pour valider son KYC :\nhttps://tontinesecure.onrender.com/admin"
+            )
+            mail.send(msg)
+        except Exception as e:
+            print(f"Erreur email: {e}")
         flash("Compte cree ! Completez maintenant votre profil.", "success")
         login_user(user)
         return redirect(url_for("auth.completer_profil"))
