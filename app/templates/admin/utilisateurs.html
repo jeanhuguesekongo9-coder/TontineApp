@@ -46,7 +46,7 @@
                 <span style="background:#e9ecef;color:#6c757d;padding:3px 10px;border-radius:20px;font-size:0.78rem;">Membre</span>
                 {% endif %}
               </td>
-              <td style="padding:1rem;font-size:0.82rem;color:#6c757d;">{{ u.created_at.strftime("%d/%m/%Y") }}</td>
+              <td style="padding:1rem;font-size:0.82rem;color:#6c757d;">{{ u.created_at.strftime("%d/%m/%Y") if u.created_at else "N/A" }}</td>
               <td style="padding:1rem;">
                 {% if u.compte_actif %}
                 <span class="badge-statut badge-success">Actif</span>
@@ -70,4 +70,5 @@
   </div>
 </div>
 {% endblock %}
+
 
