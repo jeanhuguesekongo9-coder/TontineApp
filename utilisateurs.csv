@@ -1,0 +1,5 @@
+﻿id,email,mot_de_passe,role,email_verifie,tel_verifie,kyc_valide,compte_actif
+2,jeanhuguesekongo9@gmail.com,$2b$12$p7M1k7arUQwgHe1VPHaly.8qIUIEu0Knt0Z6P1RLSzOJNkHIsugrC,membre,true,true,true,true
+3,jeanhuguesekongo9@yahoo.com,$2b$12$RI1S43CD7yyoH24Pbtjf/OgjaiphyhCWTnmUEzH3XmZ2fna9OhOi6,membre,true,true,true,true
+4,elysekongo17@gmail.com,$2b$12$etOlDiOUTqWZog0ulL48OueawNJ5GYtNUHy7VvhZxzdvOFitap9Fy,membre,true,true,true,true
+5,gracesylvia792@gmail.com,$2b$12$shsyB/X3iiI0nBIhAEoO5.fvGYlyilMfDM./RYGA4fitp//LjUV8e,membre,true,true,false,true
