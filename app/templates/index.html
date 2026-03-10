@@ -1,0 +1,41 @@
+﻿{% extends "base.html" %}
+{% block title %}TontineSecure – Epargne collaborative securisee{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <div style="text-align:center;padding:5rem 2rem 3rem;">
+    <h1 style="font-family:Playfair Display,serif;font-size:3rem;font-weight:800;color:#1a1a2e;margin-bottom:1rem;">
+      Epargnez ensemble,<br><span style="color:#f0a500;">en toute securite</span>
+    </h1>
+    <p style="font-size:1.1rem;color:#6c757d;max-width:500px;margin:0 auto 2rem;">
+      Rejoignez une tontine verifiee, signez un contrat legal et recevez votre collecte chaque mois.
+    </p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{{ url_for('auth.inscription') }}" class="btn-or" style="padding:0.9rem 2.5rem;font-size:1.1rem;">Commencer gratuitement</a>
+      <a href="{{ url_for('auth.connexion') }}" class="btn-bleu" style="padding:0.9rem 2.5rem;font-size:1.1rem;border-radius:10px;">Se connecter</a>
+    </div>
+  </div>
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card text-center p-4">
+        <div style="font-size:3rem;margin-bottom:1rem;">🔒</div>
+        <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;">100% Securise</h5>
+        <p style="color:#6c757d;font-size:0.9rem;">Verification KYC, contrats legaux et audit complet de chaque transaction.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-4">
+        <div style="font-size:3rem;margin-bottom:1rem;">💰</div>
+        <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;">Paniers flexibles</h5>
+        <p style="color:#6c757d;font-size:0.9rem;">Choisissez parmi 50 000, 100 000 ou 200 000 FCFA par mois selon vos revenus.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-4">
+        <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+        <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;">Contrat garanti</h5>
+        <p style="color:#6c757d;font-size:0.9rem;">Chaque membre signe un contrat PDF avec hash de securite avant de participer.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+﻿{% extends "base.html" %}
+{% block title %}Verification KYC – TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:650px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Verification d identite (KYC)</h1>
+  <p class="page-subtitle">Vos documents sont chiffres et securises</p>
+  {% if kyc and kyc.statut == "en_attente" %}
+  <div class="alert alert-warning">Votre dossier est en cours de verification. Vous pouvez le soumettre a nouveau si necessaire.</div>
+  {% endif %}
+  <div class="card">
+    <div class="card-body p-4">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Type de document <span style="color:#e74c3c;">*</span></label>
+          <select name="type_doc" class="form-control" required>
+            <option value="">-- Choisir --</option>
+            <option value="cni">Carte Nationale d Identite</option>
+            <option value="passeport">Passeport</option>
+            <option value="sejour">Titre de sejour</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Document recto <span style="color:#e74c3c;">*</span></label>
+          <input type="file" name="doc_identite" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+          <div class="form-text">PDF, JPG ou PNG — max 16 Mo</div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Document verso (optionnel)</label>
+          <input type="file" name="doc_identite2" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Bulletin de salaire (3 derniers mois) <span style="color:#e74c3c;">*</span></label>
+          <input type="file" name="bulletin_salaire" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Photo de profil (optionnel)</label>
+          <input type="file" name="photo_profil" class="form-control" accept=".jpg,.jpeg,.png">
+        </div>
+        <hr style="margin:1.5rem 0;">
+        <h6 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Informations bancaires (optionnel)</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">IBAN / RIB</label>
+            <input type="text" name="rib" class="form-control" placeholder="FR76 3000 1234 ...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Banque</label>
+            <input type="text" name="banque" class="form-control" placeholder="BNP Paribas">
+          </div>
+        </div>
+        <button type="submit" class="btn-or w-100" style="padding:0.85rem;font-size:1rem;">Soumettre mon dossier</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

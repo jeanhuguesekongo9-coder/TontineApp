@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Journal d audit</h1>
+  <p class="page-subtitle">Historique complet de toutes les actions sur la plateforme</p>
+
+  <div class="card">
+    <div class="card-body p-0">
+      {% if logs %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid #f0f0f0;">
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Date</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Utilisateur</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Action</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Detail</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:0.8rem 1rem;font-size:0.8rem;color:#6c757d;white-space:nowrap;">{{ log.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+              <td style="padding:0.8rem 1rem;font-size:0.85rem;">
+                {% if log.utilisateur %}
+                  <div style="font-weight:500;">{{ log.utilisateur.profil.nom_complet if log.utilisateur.profil else log.utilisateur.email }}</div>
+                {% else %}
+                  <span style="color:#6c757d;">Systeme</span>
+                {% endif %}
+              </td>
+              <td style="padding:0.8rem 1rem;">
+                <span style="background:#e9ecef;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;white-space:nowrap;">{{ log.action }}</span>
+              </td>
+              <td style="padding:0.8rem 1rem;font-size:0.82rem;color:#6c757d;max-width:250px;">{{ log.detail or "—" }}</td>
+              <td style="padding:0.8rem 1rem;font-size:0.78rem;color:#6c757d;font-family:monospace;">{{ log.ip_address or "—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:4rem 2rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+        <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;">Aucun log disponible</h5>
+        <p style="color:#6c757d;">Les actions seront enregistrees ici automatiquement.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

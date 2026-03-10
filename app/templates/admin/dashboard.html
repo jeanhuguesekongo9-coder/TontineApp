@@ -1,0 +1,93 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Tableau de bord Admin</h1>
+  <p class="page-subtitle">Vue d ensemble de la plateforme</p>
+  <div class="row g-4 mb-4">
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#1a1a2e;">{{ stats.total_utilisateurs }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">Utilisateurs</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#f0a500;">{{ stats.kyc_en_attente }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">KYC en attente</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#2ecc71;">{{ stats.kyc_approuves }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">KYC approuves</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#3498db;">{{ stats.tontines_actives }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">Tontines actives</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#9b59b6;">{{ stats.tontines_recrut }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">En recrutement</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center p-3">
+        <div style="font-size:1.8rem;font-weight:800;color:#e74c3c;">{{ stats.paiements_en_attente }}</div>
+        <div style="font-size:0.78rem;color:#6c757d;">Paiements dus</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body p-4">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:0;">KYC en attente</h5>
+            <a href="{{ url_for('admin.gerer_kyc') }}" style="color:#f0a500;font-size:0.88rem;">Voir tout</a>
+          </div>
+          {% if kycs_recents %}
+          {% for k in kycs_recents %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.8rem 0;border-bottom:1px solid #f0f0f0;">
+            <div>
+              <div style="font-weight:600;">{{ k.utilisateur.profil.nom_complet if k.utilisateur.profil else k.utilisateur.email }}</div>
+              <div style="font-size:0.78rem;color:#6c757d;">{{ k.type_doc }} — {{ k.created_at.strftime("%d/%m/%Y") }}</div>
+            </div>
+            <div style="display:flex;gap:0.5rem;">
+              <form method="POST" action="{{ url_for('admin.approuver_kyc', kyc_id=k.id) }}" style="display:inline;">
+                <button type="submit" class="btn-or" style="padding:4px 12px;font-size:0.78rem;">Approuver</button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.rejeter_kyc', kyc_id=k.id) }}" style="display:inline;">
+                <input type="hidden" name="note" value="Documents insuffisants">
+                <button type="submit" style="background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.78rem;cursor:pointer;">Rejeter</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="text-align:center;padding:2rem;color:#6c757d;">Aucun dossier en attente</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body p-4">
+          <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Actions rapides</h5>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <a href="{{ url_for('admin.creer_tontine') }}" class="btn-or" style="padding:0.7rem;text-align:center;text-decoration:none;">+ Creer une tontine</a>
+            <a href="{{ url_for('admin.gerer_kyc') }}" class="btn-bleu" style="padding:0.7rem;text-align:center;text-decoration:none;border-radius:10px;">Gerer les KYC</a>
+            <a href="{{ url_for('admin.utilisateurs') }}" class="btn-bleu" style="padding:0.7rem;text-align:center;text-decoration:none;border-radius:10px;">Utilisateurs</a>
+            <a href="{{ url_for('admin.logs') }}" class="btn-bleu" style="padding:0.7rem;text-align:center;text-decoration:none;border-radius:10px;">Audit logs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

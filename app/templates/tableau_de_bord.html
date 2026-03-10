@@ -1,0 +1,95 @@
+﻿{% extends "base.html" %}
+{% block title %}Tableau de bord – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Bonjour, {{ current_user.profil.prenom if current_user.profil else current_user.email }} 👋</h1>
+  <p class="page-subtitle">Voici un apercu de votre activite</p>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <div style="font-size:2rem;">💼</div>
+        <div style="font-size:1.8rem;font-weight:800;color:#1a1a2e;">{{ memberships|length }}</div>
+        <div style="font-size:0.85rem;color:#6c757d;">Tontines actives</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <div style="font-size:2rem;">⏳</div>
+        <div style="font-size:1.8rem;font-weight:800;color:#f0a500;">{{ paiements_dus|length }}</div>
+        <div style="font-size:0.85rem;color:#6c757d;">Paiements en attente</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <div style="font-size:2rem;">✅</div>
+        <div style="font-size:1.8rem;font-weight:800;color:#2ecc71;">{{ "Valide" if current_user.kyc_valide else "En attente" }}</div>
+        <div style="font-size:0.85rem;color:#6c757d;">Statut KYC</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <div style="font-size:2rem;">🔔</div>
+        <div style="font-size:1.8rem;font-weight:800;color:#e74c3c;">{{ notifications_non_lues|length }}</div>
+        <div style="font-size:0.85rem;color:#6c757d;">Notifications</div>
+      </div>
+    </div>
+  </div>
+
+  {% if not current_user.kyc_valide %}
+  <div style="background:linear-gradient(135deg,#fff3cd,#ffeaa7);border-radius:16px;padding:1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;">
+    <div style="font-size:2.5rem;">📋</div>
+    <div style="flex:1;">
+      <strong style="color:#856404;">Completez votre verification KYC</strong>
+      <p style="color:#856404;margin:0;font-size:0.88rem;">Soumettez vos documents pour rejoindre une tontine.</p>
+    </div>
+    <a href="{{ url_for('kyc.soumettre') }}" class="btn-or" style="padding:0.6rem 1.2rem;white-space:nowrap;">Verifier maintenant</a>
+  </div>
+  {% endif %}
+
+  {% if tontines_dispo %}
+  <h4 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Tontines disponibles</h4>
+  <div class="row g-3 mb-4">
+    {% for t in tontines_dispo %}
+    <div class="col-md-4">
+      <div class="tontine-card">
+        <div class="tontine-header">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;">{{ t.code }}</div>
+          <div style="font-weight:700;">{{ t.nom }}</div>
+          <div class="tontine-montant">{{ "{:,.0f}".format(t.montant_panier) }} <span style="font-size:0.9rem;color:rgba(255,255,255,0.5);">FCFA</span></div>
+        </div>
+        <div class="tontine-body">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:1rem;">
+            <span style="color:#6c757d;">Places restantes</span>
+            <strong>{{ t.places_restantes }}/{{ t.max_membres }}</strong>
+          </div>
+          <div style="background:#e9ecef;border-radius:4px;height:6px;margin-bottom:1rem;">
+            <div style="background:#f0a500;height:6px;border-radius:4px;width:{{ (t.nombre_membres/t.max_membres*100)|int }}%;"></div>
+          </div>
+          <a href="{{ url_for('tontines.rejoindre', tontine_id=t.id) }}" class="btn-or w-100" style="display:block;text-align:center;text-decoration:none;padding:0.6rem;">Rejoindre</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if notifs %}
+  <h4 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Notifications recentes</h4>
+  <div class="card">
+    <div class="card-body p-0">
+      {% for n in notifs %}
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:1rem;">
+        <div style="width:8px;height:8px;border-radius:50%;background:{{ '#2ecc71' if n.type_notif=='success' else '#e74c3c' if n.type_notif=='danger' else '#f0a500' }};flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <strong style="font-size:0.9rem;">{{ n.titre }}</strong>
+          <div style="font-size:0.82rem;color:#6c757d;">{{ n.message }}</div>
+        </div>
+        <div style="font-size:0.75rem;color:#aaa;">{{ n.created_at.strftime("%d/%m") }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

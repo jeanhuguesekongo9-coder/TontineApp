@@ -1,0 +1,89 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ tontine.nom }} – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">{{ tontine.nom }}</h1>
+  <p class="page-subtitle">Code : {{ tontine.code }} — Statut : {{ tontine.STATUTS[tontine.statut][0] }}</p>
+  <div class="row g-4">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1.5rem;">Informations</h5>
+          <div class="row g-3">
+            <div class="col-6">
+              <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Montant mensuel</div>
+              <div style="font-size:1.4rem;font-weight:800;color:#f0a500;">{{ "{:,.0f}".format(tontine.montant_panier) }} FCFA</div>
+            </div>
+            <div class="col-6">
+              <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Membres</div>
+              <div style="font-size:1.4rem;font-weight:800;color:#1a1a2e;">{{ tontine.nombre_membres }}/{{ tontine.max_membres }}</div>
+            </div>
+            <div class="col-6">
+              <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Jour de collecte</div>
+              <div style="font-weight:600;">{{ tontine.jour_collecte }} du mois</div>
+            </div>
+            <div class="col-6">
+              <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Date debut</div>
+              <div style="font-weight:600;">{{ tontine.date_debut.strftime("%d/%m/%Y") if tontine.date_debut else "A definir" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body p-4">
+          <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Membres ({{ membres|length }})</h5>
+          {% for m in membres %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #f0f0f0;">
+            <div style="font-weight:500;">
+              {{ m.utilisateur.profil.nom_complet if m.utilisateur.profil else m.utilisateur.email }}
+            </div>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              {% if m.ordre_collecte %}
+              <span style="background:#e9ecef;padding:2px 10px;border-radius:20px;font-size:0.78rem;">#{{ m.ordre_collecte }}</span>
+              {% endif %}
+              {% if m.a_recu %}
+              <span class="badge-statut badge-success">Recu</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      {% if mon_membership %}
+      <div class="card mb-3">
+        <div class="card-body p-4">
+          <h6 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Mon statut</h6>
+          <div style="display:flex;flex-direction:column;gap:0.6rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+              <span style="color:#6c757d;">Rang</span>
+              <strong>#{{ mon_membership.ordre_collecte or "A definir" }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+              <span style="color:#6c757d;">Contrat</span>
+              <strong style="color:{{ '#2ecc71' if mon_membership.contrat_signe else '#e74c3c' }}">
+                {{ "Signe" if mon_membership.contrat_signe else "A signer" }}
+              </strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+              <span style="color:#6c757d;">Collecte recue</span>
+              <strong>{{ "Oui" if mon_membership.a_recu else "Non" }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="card">
+        <div class="card-body p-4">
+          <h6 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Progression</h6>
+          <div style="background:#e9ecef;border-radius:8px;height:10px;margin-bottom:0.5rem;">
+            <div style="background:linear-gradient(90deg,#f0a500,#e8950a);height:10px;border-radius:8px;width:{{ (tontine.nombre_membres/tontine.max_membres*100)|int }}%;"></div>
+          </div>
+          <div style="font-size:0.82rem;color:#6c757d;text-align:center;">{{ tontine.nombre_membres }} membres sur {{ tontine.max_membres }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Creer une tontine – TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:650px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Creer une tontine</h1>
+  <p class="page-subtitle">Configurez un nouveau groupe de tontine</p>
+
+  <div class="card">
+    <div class="card-body p-4">
+      <form method="POST">
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Nom de la tontine <span style="color:#e74c3c;">*</span></label>
+          <input type="text" name="nom" class="form-control" placeholder="Ex: Tontine Famille Diallo" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Montant du panier mensuel <span style="color:#e74c3c;">*</span></label>
+          <select name="montant_panier" class="form-control" required>
+            <option value="">-- Choisir le montant --</option>
+            {% for p in paniers %}
+            <option value="{{ p }}">{{ "{:,.0f}".format(p) }} FCFA / mois</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Chaque membre versera ce montant chaque mois.</div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Membres minimum <span style="color:#e74c3c;">*</span></label>
+            <input type="number" name="min_membres" class="form-control" value="5" min="3" max="10" required>
+            <div class="form-text">Min pour demarrer le cycle</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Membres maximum <span style="color:#e74c3c;">*</span></label>
+            <input type="number" name="max_membres" class="form-control" value="10" min="5" max="20" required>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Jour de collecte mensuel <span style="color:#e74c3c;">*</span></label>
+          <select name="jour_collecte" class="form-control" required>
+            {% for j in range(1, 6) %}
+            <option value="{{ j }}">{{ j }}er du mois</option>
+            {% endfor %}
+            {% for j in range(6, 29) %}
+            <option value="{{ j }}">{{ j }} du mois</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Date de debut prevue</label>
+          <input type="date" name="date_debut" class="form-control">
+          <div class="form-text">Laissez vide pour definir plus tard</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Description (optionnel)</label>
+          <textarea name="description" class="form-control" rows="3" placeholder="Decrivez les regles et objectifs de ce groupe..."></textarea>
+        </div>
+
+        <div style="background:#fff8e6;border:1px solid #f0a500;border-radius:10px;padding:1rem;margin-bottom:1.5rem;">
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+            <span style="font-size:1.2rem;">⚠️</span>
+            <div>
+              <p style="font-weight:600;color:#1a1a2e;margin-bottom:0.25rem;">Important</p>
+              <p style="font-size:0.85rem;color:#6c757d;margin:0;">La tontine ne demarrera automatiquement que lorsque le nombre minimum de membres aura rejoint et signe leur contrat.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;">
+          <a href="{{ url_for('admin.dashboard') }}" class="btn-bleu" style="flex:1;text-align:center;padding:0.85rem;border-radius:10px;text-decoration:none;">Annuler</a>
+          <button type="submit" class="btn-or" style="flex:2;padding:0.85rem;font-size:1rem;">Creer la tontine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

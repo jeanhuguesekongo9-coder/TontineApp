@@ -1,0 +1,55 @@
+﻿{% extends "base.html" %}
+{% block title %}Tontines disponibles – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Tontines disponibles</h1>
+  <p class="page-subtitle">Choisissez le panier qui correspond a votre capacite financiere</p>
+  {% if tontines %}
+  <div class="row g-4">
+    {% for t in tontines %}
+    <div class="col-md-4">
+      <div class="tontine-card">
+        <div class="tontine-header">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;">{{ t.code }}</div>
+              <div style="font-weight:700;font-size:1.1rem;">{{ t.nom }}</div>
+            </div>
+            <span class="badge-statut badge-warning">Recrutement</span>
+          </div>
+          <div class="tontine-montant mt-2">{{ "{:,.0f}".format(t.montant_panier) }} <span style="font-size:1rem;color:rgba(255,255,255,0.5);">FCFA/mois</span></div>
+        </div>
+        <div class="tontine-body">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.5rem;">
+            <span style="color:#6c757d;">Membres</span>
+            <strong>{{ t.nombre_membres }}/{{ t.max_membres }}</strong>
+          </div>
+          <div style="background:#e9ecef;border-radius:4px;height:6px;margin-bottom:1rem;">
+            <div style="background:#f0a500;height:6px;border-radius:4px;width:{{ (t.nombre_membres/t.max_membres*100)|int }}%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:1rem;">
+            <span style="color:#6c757d;">Places restantes</span>
+            <strong style="color:{{ '#e74c3c' if t.places_restantes <= 2 else '#2ecc71' }}">{{ t.places_restantes }}</strong>
+          </div>
+          {% if t.description %}
+          <p style="font-size:0.82rem;color:#6c757d;margin-bottom:1rem;">{{ t.description[:80] }}...</p>
+          {% endif %}
+          {% if t.id in mes_ids %}
+          <div class="btn-bleu w-100" style="display:block;text-align:center;padding:0.6rem;border-radius:10px;font-size:0.88rem;">Deja membre ✓</div>
+          {% else %}
+          <a href="{{ url_for('tontines.rejoindre', tontine_id=t.id) }}" class="btn-or w-100" style="display:block;text-align:center;text-decoration:none;padding:0.6rem;">Rejoindre</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:5rem 2rem;">
+    <div style="font-size:4rem;">🔍</div>
+    <h4 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Aucune tontine disponible</h4>
+    <p style="color:#6c757d;">De nouvelles tontines seront bientot ouvertes.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

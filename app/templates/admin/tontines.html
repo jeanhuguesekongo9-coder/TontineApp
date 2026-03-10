@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Gestion des tontines – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+    <div>
+      <h1 class="page-title" style="margin-bottom:0.25rem;">Gestion des tontines</h1>
+      <p class="page-subtitle" style="margin:0;">Toutes les tontines de la plateforme</p>
+    </div>
+    <a href="{{ url_for('admin.creer_tontine') }}" class="btn-or" style="padding:0.7rem 1.5rem;text-decoration:none;">+ Creer une tontine</a>
+  </div>
+
+  {% if tontines %}
+  <div class="card">
+    <div class="card-body p-0">
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid #f0f0f0;">
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Code</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Nom</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Panier</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Membres</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Statut</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Date debut</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in tontines %}
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:1rem;font-family:monospace;font-size:0.82rem;color:#6c757d;">{{ t.code }}</td>
+              <td style="padding:1rem;">
+                <div style="font-weight:600;">{{ t.nom }}</div>
+                {% if t.description %}
+                <div style="font-size:0.75rem;color:#6c757d;">{{ t.description[:50] }}...</div>
+                {% endif %}
+              </td>
+              <td style="padding:1rem;">
+                <span style="font-weight:700;color:#f0a500;">{{ "{:,.0f}".format(t.montant_panier) }}</span>
+                <span style="font-size:0.78rem;color:#6c757d;"> FCFA</span>
+              </td>
+              <td style="padding:1rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-weight:600;">{{ t.nombre_membres }}/{{ t.max_membres }}</span>
+                  <div style="background:#e9ecef;border-radius:4px;height:6px;width:60px;">
+                    <div style="background:#f0a500;height:6px;border-radius:4px;width:{{ (t.nombre_membres/t.max_membres*100)|int }}%;"></div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:1rem;">
+                {% if t.statut == "recrutement" %}
+                <span class="badge-statut badge-warning">Recrutement</span>
+                {% elif t.statut == "en_cours" %}
+                <span class="badge-statut badge-success">En cours</span>
+                {% elif t.statut == "terminee" %}
+                <span class="badge-statut badge-info">Terminee</span>
+                {% else %}
+                <span class="badge-statut badge-danger">Suspendue</span>
+                {% endif %}
+              </td>
+              <td style="padding:1rem;font-size:0.85rem;color:#6c757d;">
+                {{ t.date_debut.strftime("%d/%m/%Y") if t.date_debut else "A definir" }}
+              </td>
+              <td style="padding:1rem;">
+                <a href="{{ url_for('tontines.detail', tontine_id=t.id) }}" style="color:#f0a500;font-size:0.85rem;text-decoration:none;">Voir →</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card">
+    <div style="text-align:center;padding:5rem 2rem;">
+      <div style="font-size:4rem;margin-bottom:1rem;">🏦</div>
+      <h4 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:0.75rem;">Aucune tontine creee</h4>
+      <p style="color:#6c757d;margin-bottom:1.5rem;">Commencez par creer la premiere tontine de la plateforme.</p>
+      <a href="{{ url_for('admin.creer_tontine') }}" class="btn-or" style="padding:0.8rem 2rem;text-decoration:none;">+ Creer la premiere tontine</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+﻿{% extends "base.html" %}
+{% block title %}Completer mon profil – TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Completer mon profil</h1>
+  <p class="page-subtitle">Ces informations sont requises pour participer aux tontines</p>
+  <div class="card">
+    <div class="card-body p-4">
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nom <span style="color:#e74c3c;">*</span></label>
+            <input type="text" name="nom" class="form-control" placeholder="DUPONT" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Prenom <span style="color:#e74c3c;">*</span></label>
+            <input type="text" name="prenom" class="form-control" placeholder="Jean" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Date de naissance <span style="color:#e74c3c;">*</span></label>
+            <input type="date" name="date_naissance" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Telephone <span style="color:#e74c3c;">*</span></label>
+            <input type="tel" name="telephone" class="form-control" placeholder="+221 77 000 00 00" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Ville</label>
+            <input type="text" name="ville" class="form-control" placeholder="Dakar">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Pays</label>
+            <input type="text" name="pays" class="form-control" placeholder="Senegal">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Profession</label>
+            <input type="text" name="profession" class="form-control" placeholder="Ingenieur">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Employeur</label>
+            <input type="text" name="employeur" class="form-control" placeholder="Entreprise SA">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Revenu mensuel net (FCFA)</label>
+            <input type="number" name="revenu_mensuel" class="form-control" placeholder="Ex: 300000" min="0">
+            <div class="form-text">Requis pour calculer votre eligibilite aux paniers.</div>
+          </div>
+          <div class="col-12 mt-2">
+            <button type="submit" class="btn-or w-100" style="padding:0.85rem;font-size:1rem;">Enregistrer mon profil</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

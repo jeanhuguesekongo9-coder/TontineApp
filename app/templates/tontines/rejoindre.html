@@ -1,0 +1,46 @@
+﻿{% extends "base.html" %}
+{% block title %}Rejoindre – TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Rejoindre {{ tontine.nom }}</h1>
+  <p class="page-subtitle">Lisez attentivement les conditions avant de vous engager</p>
+  <div class="card mb-4">
+    <div class="card-body p-4">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <div style="text-align:center;flex:1;">
+          <div style="font-family:Playfair Display,serif;font-size:2rem;font-weight:800;color:#f0a500;">{{ "{:,.0f}".format(tontine.montant_panier) }}</div>
+          <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">FCFA / mois</div>
+        </div>
+        <div style="text-align:center;flex:1;">
+          <div style="font-size:1.8rem;font-weight:800;color:#1a1a2e;">{{ tontine.nombre_membres }}/{{ tontine.max_membres }}</div>
+          <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Membres</div>
+        </div>
+        <div style="text-align:center;flex:1;">
+          <div style="font-size:1.8rem;font-weight:800;color:#1a1a2e;">{{ tontine.max_membres }}</div>
+          <div style="font-size:0.78rem;color:#6c757d;text-transform:uppercase;">Mois</div>
+        </div>
+      </div>
+      <div style="background:#fff3cd;border-left:4px solid #f0a500;border-radius:8px;padding:1rem;margin-bottom:1.5rem;font-size:0.88rem;">
+        <strong>⚠️ Engagement contractuel :</strong> En rejoignant cette tontine, vous vous engagez a verser
+        <strong>{{ "{:,.0f}".format(tontine.montant_panier) }} FCFA</strong> chaque mois pendant
+        <strong>{{ tontine.max_membres }} mois</strong>. Tout retard entraine des penalites.
+      </div>
+      <form method="POST">
+        <div style="background:#f8f9fa;border-radius:12px;padding:1.2rem;margin-bottom:1.5rem;">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+            <input type="checkbox" name="accepter_contrat" required style="margin-top:3px;accent-color:#f0a500;">
+            <span style="font-size:0.88rem;color:#555;line-height:1.6;">
+              Je lis et accepte les termes du contrat de tontine. Je m engage a cotiser chaque mois
+              et comprends que tout manquement entraine des penalites contractuelles.
+            </span>
+          </label>
+        </div>
+        <div style="display:flex;gap:1rem;">
+          <button type="submit" class="btn-or" style="flex:1;padding:0.85rem;">Confirmer mon adhesion</button>
+          <a href="{{ url_for("tontines.liste") }}" class="btn-bleu" style="flex:1;padding:0.85rem;text-align:center;text-decoration:none;">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

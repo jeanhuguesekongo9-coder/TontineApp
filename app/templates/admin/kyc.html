@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Gestion KYC – TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Gestion des KYC</h1>
+  <p class="page-subtitle">Verifiez et validez les dossiers d identite des membres</p>
+
+  <!-- Filtres -->
+  <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <a href="{{ url_for('admin.gerer_kyc') }}" style="padding:6px 16px;border-radius:20px;text-decoration:none;font-size:0.85rem;background:{% if not statut_filtre %}#f0a500;color:#fff{% else %}#f8f9fa;color:#6c757d{% endif %};">Tous</a>
+    <a href="{{ url_for('admin.gerer_kyc', statut='en_attente') }}" style="padding:6px 16px;border-radius:20px;text-decoration:none;font-size:0.85rem;background:{% if statut_filtre=='en_attente' %}#f0a500;color:#fff{% else %}#f8f9fa;color:#6c757d{% endif %};">En attente</a>
+    <a href="{{ url_for('admin.gerer_kyc', statut='approuve') }}" style="padding:6px 16px;border-radius:20px;text-decoration:none;font-size:0.85rem;background:{% if statut_filtre=='approuve' %}#2ecc71;color:#fff{% else %}#f8f9fa;color:#6c757d{% endif %};">Approuves</a>
+    <a href="{{ url_for('admin.gerer_kyc', statut='rejete') }}" style="padding:6px 16px;border-radius:20px;text-decoration:none;font-size:0.85rem;background:{% if statut_filtre=='rejete' %}#e74c3c;color:#fff{% else %}#f8f9fa;color:#6c757d{% endif %};">Rejetes</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      {% if kycs %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid #f0f0f0;">
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Membre</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Document</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Soumis le</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Statut</th>
+              <th style="padding:1rem;text-align:left;font-size:0.8rem;color:#6c757d;text-transform:uppercase;font-weight:600;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k in kycs %}
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:1rem;">
+                <div style="font-weight:600;">{{ k.utilisateur.profil.nom_complet if k.utilisateur.profil else "—" }}</div>
+                <div style="font-size:0.78rem;color:#6c757d;">{{ k.utilisateur.email }}</div>
+              </td>
+              <td style="padding:1rem;">
+                <span style="background:#e9ecef;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;">{{ k.type_doc or "—" }}</span>
+                {% if k.doc_identite %}
+                <br><a href="/uploads/{{ k.doc_identite }}" target="_blank" style="font-size:0.75rem;color:#f0a500;margin-top:4px;display:inline-block;">Voir document</a>
+                {% endif %}
+              </td>
+              <td style="padding:1rem;font-size:0.85rem;color:#6c757d;">{{ k.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+              <td style="padding:1rem;">
+                {% if k.statut == "en_attente" %}
+                <span class="badge-statut badge-warning">En attente</span>
+                {% elif k.statut == "approuve" %}
+                <span class="badge-statut badge-success">Approuve</span>
+                {% elif k.statut == "en_cours" %}
+                <span class="badge-statut badge-info">En cours</span>
+                {% else %}
+                <span class="badge-statut badge-danger">Rejete</span>
+                {% endif %}
+              </td>
+              <td style="padding:1rem;">
+                {% if k.statut == "en_attente" or k.statut == "en_cours" %}
+                <div style="display:flex;gap:0.5rem;">
+                  <form method="POST" action="{{ url_for('admin.approuver_kyc', kyc_id=k.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-or" style="padding:5px 14px;font-size:0.78rem;">✓ Approuver</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('admin.rejeter_kyc', kyc_id=k.id) }}" style="display:inline;" onsubmit="return confirm('Rejeter ce dossier ?')">
+                    <input type="hidden" name="note" value="Documents insuffisants ou non conformes">
+                    <button type="submit" style="background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:5px 14px;font-size:0.78rem;cursor:pointer;">✗ Rejeter</button>
+                  </form>
+                </div>
+                {% elif k.statut == "approuve" %}
+                <span style="color:#2ecc71;font-size:0.85rem;font-weight:600;">✓ Valide</span>
+                {% else %}
+                <span style="color:#e74c3c;font-size:0.85rem;">Rejete{% if k.note_admin %} : {{ k.note_admin[:30] }}{% endif %}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:4rem 2rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+        <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;">Aucun dossier KYC</h5>
+        <p style="color:#6c757d;">Aucun dossier ne correspond a ce filtre.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

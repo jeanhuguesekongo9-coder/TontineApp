@@ -1,0 +1,27 @@
+﻿{% extends "base.html" %}
+{% block title %}Statut KYC – TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:500px;margin:3rem auto;text-align:center;" class="fade-in">
+  {% if kyc %}
+    {% if kyc.statut == "approuve" %}
+    <div style="font-size:5rem;">✅</div>
+    <h3 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Dossier approuve !</h3>
+    <p style="color:#6c757d;">Vous pouvez maintenant rejoindre une tontine.</p>
+    <a href="{{ url_for("tontines.liste") }}" class="btn-or mt-3" style="display:inline-block;padding:0.8rem 2rem;text-decoration:none;">Voir les tontines</a>
+    {% elif kyc.statut == "en_attente" %}
+    <div style="font-size:5rem;">⏳</div>
+    <h3 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Verification en cours</h3>
+    <p style="color:#6c757d;">Votre dossier est en cours de verification. Delai : 24-48h ouvrees.</p>
+    {% elif kyc.statut == "rejete" %}
+    <div style="font-size:5rem;">❌</div>
+    <h3 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Dossier rejete</h3>
+    <p style="color:#e74c3c;">Motif : {{ kyc.note_admin }}</p>
+    <a href="{{ url_for("kyc.soumettre") }}" class="btn-or mt-3" style="display:inline-block;padding:0.8rem 2rem;text-decoration:none;">Soumettre a nouveau</a>
+    {% endif %}
+  {% else %}
+    <div style="font-size:5rem;">📋</div>
+    <h3 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Aucun dossier soumis</h3>
+    <a href="{{ url_for("kyc.soumettre") }}" class="btn-or mt-3" style="display:inline-block;padding:0.8rem 2rem;text-decoration:none;">Soumettre mon dossier</a>
+  {% endif %}
+</div>
+{% endblock %}
