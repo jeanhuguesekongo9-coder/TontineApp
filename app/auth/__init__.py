@@ -1,4 +1,5 @@
-﻿from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+﻿# -*- coding: utf-8 -*-
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
 from ..models import db, Utilisateur, Profil, AuditLog
@@ -27,14 +28,24 @@ def inscription():
             return render_template("auth/inscription.html")
         user = Utilisateur(email=email)
         user.set_password(password)
-        user.email_verifie = True
+        user.email_verifie = False
         db.session.add(user)
         db.session.commit()
-        AuditLog.log(user.id, "inscription", f"Email: {email}", ip=request.remote_addr)
-        db.session.commit()
-        flash("Compte cree ! Completez maintenant votre profil.", "success")
-        login_user(user)
-        return redirect(url_for("auth.completer_profil"))
+        try:
+            from app.emails import envoyer_email_verification
+            envoyer_email_verification(user)
+            AuditLog.log(user.id, "inscription", f"Email: {email}", ip=request.remote_addr)
+            db.session.commit()
+            flash("Compte cree ! Verifiez votre email pour activer votre compte.", "success")
+            return redirect(url_for("auth.email_envoye"))
+        except Exception as e:
+            user.email_verifie = True
+            db.session.commit()
+            AuditLog.log(user.id, "inscription", f"Email: {email}", ip=request.remote_addr)
+            db.session.commit()
+            login_user(user)
+            flash("Compte cree ! Completez votre profil.", "success")
+            return redirect(url_for("auth.completer_profil"))
     return render_template("auth/inscription.html")
 
 @auth.route("/email-envoye")
@@ -47,11 +58,20 @@ def verifier_email(token):
     if not user:
         flash("Lien invalide.", "danger")
         return redirect(url_for("auth.connexion"))
+    if user.token_email_expiry and datetime.utcnow() > user.token_email_expiry:
+        flash("Lien expire. Demandez un nouveau.", "danger")
+        return redirect(url_for("auth.renvoyer_verification"))
     user.email_verifie = True
     user.token_email = None
+    user.token_email_expiry = None
     db.session.commit()
+    try:
+        from app.emails import envoyer_email_bienvenue
+        envoyer_email_bienvenue(user)
+    except:
+        pass
     login_user(user)
-    flash("Email confirme ! Completez votre profil.", "success")
+    flash("Email confirme ! Bienvenue sur TontineSecure.", "success")
     return redirect(url_for("auth.completer_profil"))
 
 @auth.route("/connexion", methods=["GET", "POST"])
@@ -67,6 +87,9 @@ def connexion():
             return render_template("auth/connexion.html")
         if not user.compte_actif:
             flash("Compte suspendu. Contactez le support.", "danger")
+            return render_template("auth/connexion.html")
+        if not user.email_verifie:
+            flash("Verifiez votre email avant de vous connecter.", "warning")
             return render_template("auth/connexion.html")
         user.last_login = datetime.utcnow()
         db.session.commit()
@@ -153,6 +176,14 @@ def deconnexion():
 @auth.route("/renvoyer-verification", methods=["GET", "POST"])
 def renvoyer_verification():
     if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        user = Utilisateur.query.filter_by(email=email).first()
+        if user and not user.email_verifie:
+            try:
+                from app.emails import envoyer_email_verification
+                envoyer_email_verification(user)
+            except:
+                pass
         flash("Si cet email existe, un lien a ete envoye.", "info")
         return redirect(url_for("auth.email_envoye"))
-    return render_template("auth/email_envoye.html")
+    return render_template("auth/renvoyer_verification.html")

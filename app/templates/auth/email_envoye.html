@@ -1,13 +1,28 @@
 ﻿{% extends "base.html" %}
-{% block title %}Email envoye – TontineSecure{% endblock %}
+{% block title %}Email envoye - TontineSecure{% endblock %}
 {% block content %}
-<div style="max-width:480px;margin:4rem auto;text-align:center;" class="fade-in">
-  <div style="font-size:5rem;">📧</div>
-  <h2 style="font-family:Playfair Display,serif;color:#1a1a2e;margin:1rem 0;">Email envoye !</h2>
-  <p style="color:#6c757d;line-height:1.8;">
-    Un email de verification a ete envoye a votre adresse.<br>
-    Verifiez vos spams si vous ne le trouvez pas.
-  </p>
-  <a href="{{ url_for('auth.connexion') }}" class="btn-or mt-3" style="display:inline-block;padding:0.8rem 2rem;text-decoration:none;">Retour a la connexion</a>
+<div class="fade-in" style="max-width:500px;margin:4rem auto;text-align:center;">
+  <div class="card p-5">
+    <div style="font-size:4rem;margin-bottom:1rem;">📧</div>
+    <h2 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Verifiez votre email !</h2>
+    <p style="color:#6c757d;margin-bottom:2rem;">
+      Un lien de verification a ete envoye a votre adresse email.<br>
+      Cliquez sur le lien pour activer votre compte.
+    </p>
+    <div style="background:#fff3cd;border-radius:10px;padding:1rem;margin-bottom:2rem;">
+      <p style="color:#856404;margin:0;font-size:0.9rem;">
+        ⏱ Le lien expire dans <strong>24 heures</strong>
+      </p>
+    </div>
+    <p style="color:#6c757d;font-size:0.9rem;">Vous n avez pas recu l email ?</p>
+    <a href="{{ url_for('auth.renvoyer_verification') }}" class="btn-or" style="padding:0.7rem 2rem;display:inline-block;margin-top:0.5rem;">
+      Renvoyer l email
+    </a>
+    <div style="margin-top:1.5rem;">
+      <a href="{{ url_for('auth.connexion') }}" style="color:#6c757d;font-size:0.9rem;">
+        Retour a la connexion
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}

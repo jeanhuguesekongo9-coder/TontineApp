@@ -1,0 +1,24 @@
+﻿{% extends "base.html" %}
+{% block title %}Renvoyer verification - TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in" style="max-width:450px;margin:4rem auto;">
+  <div class="card p-5">
+    <h2 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:0.5rem;">Renvoyer le lien</h2>
+    <p style="color:#6c757d;margin-bottom:2rem;">Entrez votre email pour recevoir un nouveau lien.</p>
+    <div style="margin-bottom:1rem;">
+      <label style="font-weight:600;color:#1a1a2e;">Email</label>
+      <form method="POST">
+        <input type="email" name="email" class="form-control mt-1" placeholder="votre@email.com" required>
+        <button type="submit" class="btn-or w-100 mt-3" style="padding:0.75rem;">
+          Envoyer le lien
+        </button>
+      </form>
+    </div>
+    <div style="text-align:center;margin-top:1rem;">
+      <a href="{{ url_for('auth.connexion') }}" style="color:#6c757d;font-size:0.9rem;">
+        Retour a la connexion
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
