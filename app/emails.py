@@ -17,12 +17,13 @@ def envoyer_email_verification(utilisateur):
             "Content-Type": "application/json"
         },
         json={
-            "sender": {"name": "TontineSecure", "email": "noreply@tontinesecure.com"},
+            "sender": {"name": "TontineSecure", "email": "jeanhuguesekongo9@gmail.com"},
             "to": [{"email": utilisateur.email}],
             "subject": "Verifiez votre email - TontineSecure",
             "htmlContent": f"""<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
                 <div style="background:#1a1a2e;padding:30px;text-align:center;">
                     <h1 style="color:#f0a500;margin:0;">TontineSecure</h1>
+                    <p style="color:#fff;margin:5px 0;">Epargne collaborative securisee</p>
                 </div>
                 <div style="background:#fff;padding:40px;border:1px solid #eee;">
                     <h2>Bienvenue !</h2>
