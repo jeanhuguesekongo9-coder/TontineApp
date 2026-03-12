@@ -1,5 +1,5 @@
-﻿{% extends "base.html" %}
-{% block title %}Verification KYC – TontineSecure{% endblock %}
+{% extends "base.html" %}
+{% block title %}Verification KYC � TontineSecure{% endblock %}
 {% block content %}
 <div style="max-width:650px;margin:0 auto;" class="fade-in">
   <h1 class="page-title">Verification d identite (KYC)</h1>
@@ -21,20 +21,20 @@
         </div>
         <div class="mb-4">
           <label class="form-label fw-semibold">Document recto <span style="color:#e74c3c;">*</span></label>
-          <input type="file" name="doc_identite" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-          <div class="form-text">PDF, JPG ou PNG — max 16 Mo</div>
+          <input type="file" name="doc_identite" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+          <div class="form-text">PDF, JPG ou PNG � max 16 Mo</div>
         </div>
         <div class="mb-4">
           <label class="form-label fw-semibold">Document verso (optionnel)</label>
           <input type="file" name="doc_identite2" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
         </div>
         <div class="mb-4">
-          <label class="form-label fw-semibold">Bulletin de salaire (3 derniers mois) <span style="color:#e74c3c;">*</span></label>
-          <input type="file" name="bulletin_salaire" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+          <label class="form-label fw-semibold">Bulletin de salaire (3 derniers mois) <span class="text-muted" style="font-size:0.85rem;">(optionnel)</span></label>
+          <input type="file" name="bulletin_salaire" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
         </div>
         <div class="mb-4">
-          <label class="form-label fw-semibold">Photo de profil (optionnel)</label>
-          <input type="file" name="photo_profil" class="form-control" accept=".jpg,.jpeg,.png">
+          <label class="form-label fw-semibold">Photo de profil <span style="color:#e74c3c;">*</span></label>
+          <input type="file" name="photo_profil" class="form-control" accept=".jpg,.jpeg,.png" required>
         </div>
         <hr style="margin:1.5rem 0;">
         <h6 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Informations bancaires (optionnel)</h6>
