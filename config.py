@@ -1,10 +1,16 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
+    PANIERS = [
+        {"montant": 50000, "label": "50 000 FCFA/mois"},
+        {"montant": 100000, "label": "100 000 FCFA/mois"},
+        {"montant": 200000, "label": "200 000 FCFA/mois"},
+    ]
+
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'tontinesecure-secret-2026'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')
