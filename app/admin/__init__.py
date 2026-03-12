@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
 from functools import wraps
@@ -205,3 +205,11 @@ def export_excel():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@admin.route("/fichier/<path:chemin>")
+@admin_requis
+def voir_fichier(chemin):
+    from flask import current_app, send_from_directory
+    import os
+    dossier = os.path.join(current_app.root_path, current_app.config.get("UPLOAD_FOLDER", "uploads"))
+    return send_from_directory(os.path.abspath(dossier), chemin)

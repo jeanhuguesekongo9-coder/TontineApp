@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
@@ -96,6 +96,8 @@ def connexion():
         login_user(user, remember=request.form.get("souvenir") == "on")
         AuditLog.log(user.id, "connexion", ip=request.remote_addr)
         db.session.commit()
+        if user.role == "admin":
+            return redirect(url_for("admin.dashboard"))
         if not user.profil:
             return redirect(url_for("auth.completer_profil"))
         if not user.tel_verifie:
