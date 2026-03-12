@@ -209,7 +209,12 @@ def export_excel():
 @admin.route("/fichier/<path:chemin>")
 @admin_requis
 def voir_fichier(chemin):
-    from flask import current_app, send_from_directory
     import os
-    dossier = os.path.join(current_app.root_path, current_app.config.get("UPLOAD_FOLDER", "uploads"))
-    return send_from_directory(os.path.abspath(dossier), chemin)
+    from supabase import create_client
+    from flask import redirect
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    client = create_client(url, key)
+    result = client.storage.from_("kyc-documents").create_signed_url(chemin, 300)
+    return redirect(result["signedURL"])
+

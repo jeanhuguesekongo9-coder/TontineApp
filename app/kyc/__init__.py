@@ -1,4 +1,4 @@
-﻿from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 import os, secrets
 from ..models import db, KYC, AuditLog
@@ -11,11 +11,20 @@ def sauvegarder_fichier(fichier, sous_dossier):
     ext = fichier.filename.rsplit(".", 1)[-1].lower()
     if ext not in {"pdf", "jpg", "jpeg", "png"}:
         return None
+    import os, secrets
+    from supabase import create_client
     nom = secrets.token_hex(16) + "." + ext
-    dossier = os.path.join(current_app.config["UPLOAD_FOLDER"], sous_dossier)
-    os.makedirs(dossier, exist_ok=True)
-    fichier.save(os.path.join(dossier, nom))
-    return os.path.join(sous_dossier, nom)
+    chemin = sous_dossier + "/" + nom
+    try:
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY")
+        client = create_client(url, key)
+        data = fichier.read()
+        client.storage.from_("kyc-documents").upload(chemin, data, {"content-type": fichier.mimetype})
+        return chemin
+    except Exception as e:
+        print(f"Erreur Supabase upload: {e}")
+        return None
 
 @kyc.route("/soumettre", methods=["GET", "POST"])
 @login_required
