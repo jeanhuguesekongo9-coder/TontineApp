@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord Admin - TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Tableau de bord Administrateur</h1>
+  <p class="page-subtitle">Vue complete de la plateforme en temps reel</p>
+
+  <!-- KPIs principaux -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;border-radius:16px;">
+        <div style="color:#f0a500;font-size:0.8rem;font-weight:600;">TOTAL EN CAISSE</div>
+        <div style="font-size:1.6rem;font-weight:700;margin:6px 0;">{{ "{:,.0f}".format(total_soldes) }}</div>
+        <div style="color:#aaa;font-size:0.8rem;">FCFA</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #27ae60;">
+        <div style="font-size:0.8rem;color:#666;font-weight:600;">COTISATIONS COLLECTEES</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#27ae60;">{{ "{:,.0f}".format(total_cotisations) }}</div>
+        <div style="font-size:0.8rem;color:#999;">FCFA total</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #e74c3c;">
+        <div style="font-size:0.8rem;color:#666;font-weight:600;">PENALITES DUES</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#e74c3c;">{{ "{:,.0f}".format(total_penalites_dues) }}</div>
+        <div style="font-size:0.8rem;color:#999;">FCFA a recouvrer</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #f0a500;">
+        <div style="font-size:0.8rem;color:#666;font-weight:600;">TONTINES ACTIVES</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#f0a500;">{{ tontines_actives }}</div>
+        <div style="font-size:0.8rem;color:#999;">en cours</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes urgentes -->
+  <div class="row g-3 mb-4">
+    {% if recharges_attente > 0 %}
+    <div class="col-md-4">
+      <a href="{{ url_for('admin.gerer_recharges') }}" style="text-decoration:none;">
+        <div class="card p-3" style="border-left:4px solid #f0a500;background:#fffbf0;cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2rem;">💳</div>
+            <div>
+              <div style="font-size:1.4rem;font-weight:700;color:#f0a500;">{{ recharges_attente }}</div>
+              <div style="font-size:0.85rem;color:#666;">Recharges en attente</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    {% if kyc_attente > 0 %}
+    <div class="col-md-4">
+      <a href="{{ url_for('admin.utilisateurs') }}" style="text-decoration:none;">
+        <div class="card p-3" style="border-left:4px solid #3498db;background:#f0f8ff;cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2rem;">🪪</div>
+            <div>
+              <div style="font-size:1.4rem;font-weight:700;color:#3498db;">{{ kyc_attente }}</div>
+              <div style="font-size:0.85rem;color:#666;">KYC a verifier</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    {% if mises_en_demeure > 0 %}
+    <div class="col-md-4">
+      <a href="{{ url_for('admin.gerer_penalites') }}?statut=mise_en_demeure" style="text-decoration:none;">
+        <div class="card p-3" style="border-left:4px solid #e74c3c;background:#fff5f5;cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2rem;">⚖️</div>
+            <div>
+              <div style="font-size:1.4rem;font-weight:700;color:#e74c3c;">{{ mises_en_demeure }}</div>
+              <div style="font-size:0.85rem;color:#666;">Mises en demeure</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Membres -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div style="font-size:2rem;">👥</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;">{{ total_membres }}</div>
+        <small class="text-muted">Total membres inscrits</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div style="font-size:2rem;">✅</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#27ae60;">{{ membres_actifs }}</div>
+        <small class="text-muted">Membres actifs en tontine</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div style="font-size:2rem;">🚫</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#e74c3c;">{{ membres_suspendus }}</div>
+        <small class="text-muted">Membres suspendus</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau retardataires -->
+  {% if retardataires %}
+  <div class="card">
+    <div class="card-body">
+      <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">⚠️ Retardataires - Action requise</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead style="background:#fff5f5;">
+            <tr>
+              <th>Membre</th>
+              <th>Email</th>
+              <th>Mois impayes</th>
+              <th>Total du</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in retardataires %}
+            <tr {% if r.en_poursuite %}style="background:#fff5f5;"{% endif %}>
+              <td><strong>{{ r.nom }}</strong></td>
+              <td><small>{{ r.email }}</small></td>
+              <td>
+                {% if r.nb_impayes >= 3 %}
+                <span class="badge bg-danger">{{ r.nb_impayes }} mois</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">{{ r.nb_impayes }} mois</span>
+                {% endif %}
+              </td>
+              <td><strong style="color:#e74c3c;">{{ "{:,.0f}".format(r.total_du) }} FCFA</strong></td>
+              <td>
+                {% if r.en_poursuite %}
+                <span style="color:#e74c3c;font-weight:600;font-size:0.85rem;">⚖️ Poursuites possibles</span>
+                {% else %}
+                <span style="color:#f0a500;font-size:0.85rem;">⏳ En retard</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('admin.gerer_penalites') }}?statut=en_cours" class="btn btn-sm btn-outline-danger">Voir penalites</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

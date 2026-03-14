@@ -60,6 +60,8 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.utilisateurs') }}">Utilisateurs</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.gerer_recharges') }}">💳 Recharges</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.gerer_soldes') }}">💰 Soldes</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.gerer_penalites') }}">⚠️ Penalites</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.tableau_de_bord') }}">📊 Tableau de bord</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.logs') }}">Logs</a></li>
         <li class="nav-item ms-2"><a href="{{ url_for('auth.deconnexion') }}" class="btn-rouge" style="padding:0.45rem 1rem;font-size:0.88rem;">Deconnexion</a></li>
       </ul>
@@ -78,6 +80,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('tontines.mes_tontines') }}">Mes tontines</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('kyc.soumettre') }}">Mon KYC</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('paiements.dashboard') }}">💰 Mon Portefeuille</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('paiements.ma_tontine') }}">🔒 Ma Tontine</a></li>
         {% if notifications_non_lues %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('main.tableau_de_bord') }}">Notifications <span class="notif-badge">{{ notifications_non_lues|length }}</span></a></li>
         {% endif %}

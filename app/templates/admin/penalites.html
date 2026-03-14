@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Penalites - Admin{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Gestion des Penalites</h1>
+  <p class="page-subtitle">Retards de cotisation et mises en demeure</p>
+
+  <!-- Stats rapides -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card text-center p-3" style="border-left:4px solid #e74c3c;">
+        <div style="font-size:1.8rem;font-weight:700;color:#e74c3c;">{{ mises_en_demeure }}</div>
+        <small class="text-muted">Mises en demeure (3+ mois)</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-3" style="border-left:4px solid #f0a500;">
+        <div style="font-size:1.8rem;font-weight:700;color:#f0a500;">{{ "{:,.0f}".format(total_du) }}</div>
+        <small class="text-muted">FCFA total du (cotisations + penalites)</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-3" style="border-left:4px solid #1a1a2e;">
+        <div style="font-size:1.8rem;font-weight:700;color:#1a1a2e;">{{ penalites|length }}</div>
+        <small class="text-muted">Penalites {{ statut.replace("_", " ") }}</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mb-4 d-flex gap-2 flex-wrap">
+    <a href="?statut=en_cours" class="btn {% if statut == 'en_cours' %}btn-warning{% else %}btn-outline-warning{% endif %}">⏳ En cours</a>
+    <a href="?statut=mise_en_demeure" class="btn {% if statut == 'mise_en_demeure' %}btn-danger{% else %}btn-outline-danger{% endif %}">⚠️ Mise en demeure</a>
+    <a href="?statut=regularise" class="btn {% if statut == 'regularise' %}btn-success{% else %}btn-outline-success{% endif %}">✅ Regularisees</a>
+    <a href="?statut=annulee" class="btn {% if statut == 'annulee' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">🚫 Annulees</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if penalites %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Reference</th>
+              <th>Membre</th>
+              <th>Tontine</th>
+              <th>Mois</th>
+              <th>Cotisation due</th>
+              <th>Penalite 1.5%</th>
+              <th>Total</th>
+              <th>Mois impayes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in penalites %}
+            <tr {% if p.mois_impaye >= 3 %}style="background:#fff5f5;"{% endif %}>
+              <td><code>{{ p.reference }}</code></td>
+              <td>
+                <strong>{{ p.utilisateur.profil.nom_complet if p.utilisateur.profil else p.utilisateur.email }}</strong><br>
+                <small class="text-muted">{{ p.utilisateur.email }}</small>
+              </td>
+              <td><span class="badge" style="background:#1a1a2e;color:#f0a500;">{{ p.tontine.code }}</span></td>
+              <td><strong>{{ p.mois_reference }}</strong></td>
+              <td>{{ "{:,.0f}".format(p.montant_du) }} FCFA</td>
+              <td style="color:#e74c3c;font-weight:600;">{{ "{:,.0f}".format(p.montant_penalite) }} FCFA</td>
+              <td style="font-weight:700;">{{ "{:,.0f}".format(p.montant_du + p.montant_penalite) }} FCFA</td>
+              <td>
+                {% if p.mois_impaye >= 3 %}
+                <span class="badge bg-danger">{{ p.mois_impaye }} mois ⚠️ POURSUITE</span>
+                {% elif p.mois_impaye == 2 %}
+                <span class="badge bg-warning text-dark">{{ p.mois_impaye }} mois</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ p.mois_impaye }} mois</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if statut in ['en_cours', 'mise_en_demeure'] %}
+                <form method="POST" action="{{ url_for('admin.regulariser_penalite', pen_id=p.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Regulariser cette penalite ? Le montant sera debite du solde.')">✅ Regulariser</button>
+                </form>
+                <button class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#annulModal{{ p.id }}">🚫 Annuler</button>
+                <div class="modal fade" id="annulModal{{ p.id }}" tabindex="-1">
+                  <div class="modal-dialog"><div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">Annuler la penalite</h5></div>
+                    <form method="POST" action="{{ url_for('admin.annuler_penalite', pen_id=p.id) }}">
+                      <div class="modal-body">
+                        <p>Penalite <strong>{{ p.reference }}</strong> — {{ p.mois_reference }}</p>
+                        <label class="form-label">Motif de l annulation</label>
+                        <textarea name="note" class="form-control" rows="2" placeholder="Ex: Accord amiable..." required></textarea>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Confirmer</button>
+                      </div>
+                    </form>
+                  </div></div>
+                </div>
+                {% elif statut == 'regularise' %}
+                <span style="color:#27ae60;font-size:0.85rem;">✅ {{ p.regularise_le.strftime('%d/%m/%Y') if p.regularise_le else '-' }}</span>
+                {% else %}
+                <span style="color:#999;font-size:0.85rem;">🚫 {{ p.note_admin or '-' }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div style="font-size:3rem;">✅</div>
+        <p class="text-muted mt-2">Aucune penalite {{ statut.replace("_", " ") }}.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

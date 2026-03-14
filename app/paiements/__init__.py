@@ -120,3 +120,15 @@ def recharger():
 def facture(reference):
     transaction = Transaction.query.filter_by(reference=reference, user_id=current_user.id).first_or_404()
     return render_template("paiements/facture.html", transaction=transaction)
+@paiements.route("/ma-tontine")
+@login_required
+def ma_tontine():
+    from ..models import MembreTontine, Penalite
+    memberships = MembreTontine.query.filter_by(user_id=current_user.id).all()
+    penalites_actives = Penalite.query.filter(
+        Penalite.user_id == current_user.id,
+        Penalite.statut.in_(["en_cours", "mise_en_demeure"])
+    ).all()
+    return render_template("paiements/ma_tontine.html",
+        memberships=memberships,
+        penalites_actives=penalites_actives)

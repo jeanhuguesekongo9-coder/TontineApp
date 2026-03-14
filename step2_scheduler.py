@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿texte = """# -*- coding: utf-8 -*-
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import logging
@@ -144,3 +144,6 @@ def init_scheduler(app):
     scheduler.start()
     logger.info("Scheduler demarre - debit le 5, penalites le 9 de chaque mois")
     return scheduler
+"""
+open("app/scheduler.py", "w", encoding="utf-8").write(texte)
+print("OK!")
