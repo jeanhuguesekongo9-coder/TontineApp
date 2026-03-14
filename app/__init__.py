@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -44,6 +44,8 @@ def create_app(config_name="default"):
     app.register_blueprint(admin_bp, url_prefix="/admin")
     from .main import main as main_bp
     app.register_blueprint(main_bp)
+    from .paiements import paiements as paiements_bp
+    app.register_blueprint(paiements_bp, url_prefix="/paiements")
 
     @app.context_processor
     def inject_globals():

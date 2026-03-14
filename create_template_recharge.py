@@ -1,0 +1,82 @@
+﻿content = """{% extends "base.html" %}
+{% block title %}Recharger mon compte - TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Recharger mon compte</h1>
+  <p class="page-subtitle">Choisissez votre moyen de paiement</p>
+  <div class="card">
+    <div class="card-body p-4">
+      <form method="POST">
+        <!-- Choix reseau -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Reseau de paiement <span style="color:#e74c3c;">*</span></label>
+          <div class="row g-2">
+            {% for code, info in reseaux.items() %}
+            <div class="col-6">
+              <input type="radio" name="reseau" id="{{ code }}" value="{{ code }}" class="d-none reseau-radio" required>
+              <label for="{{ code }}" class="reseau-card w-100 text-center p-3" style="border:2px solid #eee;border-radius:12px;cursor:pointer;transition:all 0.2s;">
+                <div style="font-size:1.8rem;">{{ info.flag }}</div>
+                <div style="font-weight:600;font-size:0.9rem;margin-top:5px;">{{ info.nom }}</div>
+                <div style="font-size:0.75rem;color:#999;">{{ info.numero }}</div>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <!-- Montant -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Montant (FCFA) <span style="color:#e74c3c;">*</span></label>
+          <input type="number" name="montant" class="form-control" placeholder="Ex: 50000" min="1000" step="500" required>
+          <div class="form-text">Minimum 1 000 FCFA</div>
+          <div class="row g-2 mt-2">
+            {% for montant in [5000, 10000, 25000, 50000, 100000, 200000] %}
+            <div class="col-4">
+              <button type="button" class="btn btn-outline-secondary w-100 btn-montant" style="font-size:0.8rem;" data-montant="{{ montant }}">
+                {{ "{:,.0f}".format(montant) }}
+              </button>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <!-- Telephone -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Numero de telephone utilise <span style="color:#e74c3c;">*</span></label>
+          <input type="text" name="numero_telephone" class="form-control" placeholder="+221 77 XXX XX XX" required>
+        </div>
+        <!-- Reference transaction -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Reference de transaction <span style="color:#e74c3c;">*</span></label>
+          <input type="text" name="reference_transaction" class="form-control" placeholder="Ex: TXN123456789" required>
+          <div class="form-text">Copiez la reference dans le SMS de confirmation de votre paiement</div>
+        </div>
+        <!-- Instructions -->
+        <div style="background:#f0f8ff;border-radius:10px;padding:15px;margin-bottom:20px;">
+          <h6 style="color:#1a1a2e;">Comment recharger ?</h6>
+          <ol style="color:#555;font-size:0.9rem;margin:0;padding-left:20px;">
+            <li>Envoyez le montant au numero TontineSecure de votre reseau</li>
+            <li>Copiez la reference de transaction dans le SMS recu</li>
+            <li>Remplissez ce formulaire et soumettez</li>
+            <li>Validation sous 24h par notre equipe</li>
+          </ol>
+        </div>
+        <button type="submit" class="btn-or w-100" style="padding:0.85rem;font-size:1rem;">Soumettre la recharge</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.reseau-radio').forEach(r => {
+  r.addEventListener('change', function() {
+    document.querySelectorAll('.reseau-card').forEach(c => c.style.borderColor = '#eee');
+    document.querySelector('label[for="' + this.id + '"]').style.borderColor = '#f0a500';
+  });
+});
+document.querySelectorAll('.btn-montant').forEach(b => {
+  b.addEventListener('click', function() {
+    document.querySelector('input[name="montant"]').value = this.dataset.montant;
+  });
+});
+</script>
+{% endblock %}"""
+open("app/templates/paiements/recharger.html", "w", encoding="utf-8").write(content)
+print("OK!")

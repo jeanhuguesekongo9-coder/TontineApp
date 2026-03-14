@@ -1,0 +1,128 @@
+﻿content = """{% extends "base.html" %}
+{% block title %}Mon Portefeuille - TontineSecure{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Mon Portefeuille</h1>
+  <p class="page-subtitle">Gerez votre solde et vos transactions</p>
+
+  <!-- Solde principal -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card text-center" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;border-radius:20px;">
+        <div class="card-body p-4">
+          <p style="color:#f0a500;font-size:0.9rem;margin-bottom:5px;">SOLDE DISPONIBLE</p>
+          <h2 style="font-size:2.5rem;font-weight:700;color:#fff;">{{ "{:,.0f}".format(solde.montant) }}</h2>
+          <p style="color:#aaa;font-size:0.85rem;">FCFA</p>
+          <a href="{{ url_for('paiements.recharger') }}" class="btn-or mt-2" style="padding:10px 25px;font-size:0.9rem;">+ Recharger</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="card text-center p-3">
+            <div style="font-size:2rem;">💳</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#27ae60;">
+              {{ transactions|selectattr('sens','eq','credit')|sum(attribute='montant')|int|format(',d') }} FCFA
+            </div>
+            <small class="text-muted">Total recu</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card text-center p-3">
+            <div style="font-size:2rem;">📤</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#e74c3c;">
+              {{ transactions|selectattr('sens','eq','debit')|sum(attribute='montant')|int|format(',d') }} FCFA
+            </div>
+            <small class="text-muted">Total debite</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card text-center p-3">
+            <div style="font-size:2rem;">⏳</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#f0a500;">
+              {{ recharges|selectattr('statut','eq','en_attente')|list|length }}
+            </div>
+            <small class="text-muted">Recharges en attente</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card text-center p-3">
+            <div style="font-size:2rem;">✅</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#27ae60;">
+              {{ recharges|selectattr('statut','eq','valide')|list|length }}
+            </div>
+            <small class="text-muted">Recharges validees</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recharges en attente -->
+  {% set recharges_attente = recharges|selectattr('statut','eq','en_attente')|list %}
+  {% if recharges_attente %}
+  <div class="alert" style="background:#fff3cd;border-left:4px solid #f0a500;border-radius:10px;padding:15px;margin-bottom:20px;">
+    <strong>⏳ {{ recharges_attente|length }} recharge(s) en cours de validation</strong>
+    {% for r in recharges_attente %}
+    <div style="margin-top:5px;font-size:0.9rem;">
+      {{ r.reference }} — {{ "{:,.0f}".format(r.montant) }} FCFA via {{ reseaux[r.reseau]['nom'] }} — {{ r.created_at.strftime('%d/%m/%Y %H:%M') }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Historique transactions -->
+  <div class="card">
+    <div class="card-body">
+      <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Historique des transactions</h5>
+      {% if transactions %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Reference</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th>Montant</th>
+              <th>Solde apres</th>
+              <th>Facture</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td><code style="font-size:0.8rem;">{{ t.reference }}</code></td>
+              <td>{{ t.description or t.type_transaction }}</td>
+              <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>
+                {% if t.sens == 'credit' %}
+                <span style="color:#27ae60;font-weight:700;">+{{ "{:,.0f}".format(t.montant) }} FCFA</span>
+                {% else %}
+                <span style="color:#e74c3c;font-weight:700;">-{{ "{:,.0f}".format(t.montant) }} FCFA</span>
+                {% endif %}
+              </td>
+              <td>{{ "{:,.0f}".format(t.solde_apres or 0) }} FCFA</td>
+              <td>
+                <a href="{{ url_for('paiements.facture', reference=t.reference) }}" class="btn btn-sm btn-outline-secondary">
+                  📄 Voir
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+        <div style="font-size:3rem;">💰</div>
+        <p class="text-muted">Aucune transaction pour le moment.</p>
+        <a href="{{ url_for('paiements.recharger') }}" class="btn-or">Faire ma premiere recharge</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}"""
+open("app/templates/paiements/dashboard.html", "w", encoding="utf-8").write(content)
+print("OK!")
