@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Mes Retraits - TontineSecure{% endblock %}
+{% block content %}
+<div style="max-width:800px;margin:0 auto;" class="fade-in">
+  <h1 class="page-title">Mes Retraits</h1>
+  <p class="page-subtitle">Historique de vos demandes de retrait</p>
+
+  <!-- Solde + bouton nouveau retrait -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:14px;padding:16px 25px;color:#fff;">
+      <div style="font-size:0.75rem;color:#f0a500;font-weight:600;">SOLDE DISPONIBLE</div>
+      <div style="font-size:1.6rem;font-weight:700;">{{ "{:,.0f}".format(solde.montant) }} <span style="font-size:0.9rem;color:#aaa;">FCFA</span></div>
+    </div>
+    <a href="{{ url_for('paiements.retirer') }}"
+       style="background:#f0a500;color:#fff;padding:12px 25px;border-radius:12px;
+              text-decoration:none;font-weight:700;font-size:0.9rem;">
+      + Nouveau retrait
+    </a>
+  </div>
+
+  {% if retraits %}
+  <div class="card" style="border-radius:16px;">
+    <div class="card-body p-0">
+      {% for r in retraits %}
+      <div style="padding:18px 20px;border-bottom:1px solid #f0f0f0;{% if loop.last %}border-bottom:none;{% endif %}">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+
+          <div>
+            <div style="font-size:0.75rem;color:#888;font-weight:600;">{{ r.reference }}</div>
+            <div style="font-size:1.15rem;font-weight:700;color:#1a1a2e;margin:3px 0;">
+              {{ "{:,.0f}".format(r.montant) }} FCFA
+            </div>
+            <div style="font-size:0.83rem;color:#555;">
+              📱 {{ reseaux[r.reseau]['nom'] if r.reseau in reseaux else r.reseau }}
+              → <strong>{{ r.numero_telephone }}</strong>
+            </div>
+            <div style="font-size:0.78rem;color:#999;margin-top:3px;">
+              Demandé le {{ r.created_at.strftime('%d/%m/%Y à %H:%M') }}
+            </div>
+            {% if r.reference_admin %}
+            <div style="font-size:0.78rem;color:#27ae60;margin-top:3px;">
+              ✅ Réf. envoi : <strong>{{ r.reference_admin }}</strong>
+            </div>
+            {% endif %}
+            {% if r.note_admin and r.statut == 'rejete' %}
+            <div style="font-size:0.78rem;color:#e74c3c;margin-top:3px;">
+              Motif : {{ r.note_admin }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div style="text-align:right;">
+            {% if r.statut == 'en_attente' %}
+            <span style="background:#fff5f0;color:#f0a500;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+              ⏳ En attente
+            </span>
+            <form method="POST" action="{{ url_for('paiements.annuler_retrait', retrait_id=r.id) }}" style="margin-top:8px;">
+              <button type="submit" class="btn btn-sm btn-outline-secondary"
+                      onclick="return confirm('Annuler cette demande de retrait ?')">
+                Annuler
+              </button>
+            </form>
+            {% elif r.statut == 'valide' %}
+            <span style="background:#f0fff4;color:#27ae60;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+              ✅ Envoyé
+            </span>
+            {% if r.traite_le %}
+            <div style="font-size:0.75rem;color:#999;margin-top:4px;">
+              {{ r.traite_le.strftime('%d/%m/%Y') }}
+            </div>
+            {% endif %}
+            {% elif r.statut == 'rejete' %}
+            <span style="background:#fff5f5;color:#e74c3c;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+              ❌ Rejeté
+            </span>
+            {% elif r.statut == 'annule' %}
+            <span style="background:#f8f9fa;color:#999;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">
+              🚫 Annulé
+            </span>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card text-center p-5">
+    <div style="font-size:3rem;">💸</div>
+    <h5 style="color:#1a1a2e;margin-top:15px;">Aucun retrait pour le moment</h5>
+    <p class="text-muted">Vous pouvez retirer votre solde disponible à tout moment.</p>
+    <a href="{{ url_for('paiements.retirer') }}" class="btn-or" style="display:inline-block;padding:10px 25px;margin-top:10px;">
+      Faire un retrait
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

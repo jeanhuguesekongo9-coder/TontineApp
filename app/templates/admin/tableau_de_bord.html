@@ -69,6 +69,22 @@
       </a>
     </div>
     {% endif %}
+    {% if retraits_attente > 0 %}
+    <div class="col-md-4">
+      <a href="{{ url_for('admin.gerer_retraits') }}" style="text-decoration:none;">
+        <div class="card p-3" style="border-left:4px solid #1a1a2e;background:#f8f9fa;cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2rem;">💸</div>
+            <div>
+              <div style="font-size:1.4rem;font-weight:700;color:#1a1a2e;">{{ retraits_attente }}</div>
+              <div style="font-size:0.85rem;color:#666;">Retraits en attente</div>
+              <div style="font-size:0.78rem;color:#e74c3c;font-weight:600;">{{ "{:,.0f}".format(montant_retraits_attente) }} FCFA à envoyer</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
     {% if mises_en_demeure > 0 %}
     <div class="col-md-4">
       <a href="{{ url_for('admin.gerer_penalites') }}?statut=mise_en_demeure" style="text-decoration:none;">

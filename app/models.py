@@ -290,3 +290,23 @@ class Penalite(db.Model):
     @property
     def en_poursuite(self):
         return self.mois_impaye >= 3
+
+class Retrait(db.Model):
+    __tablename__ = "retraits"
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(30), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("utilisateurs.id"), nullable=False)
+    montant = db.Column(db.Float, nullable=False)
+    reseau = db.Column(db.String(30), nullable=False)
+    numero_telephone = db.Column(db.String(20), nullable=False)
+    statut = db.Column(db.String(20), default="en_attente")  # en_attente, valide, rejete
+    reference_admin = db.Column(db.String(100))
+    note_admin = db.Column(db.Text)
+    traite_le = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    utilisateur = db.relationship("Utilisateur", backref="retraits", foreign_keys=[user_id])
+
+    @staticmethod
+    def generer_reference():
+        import secrets
+        return "RET" + secrets.token_hex(6).upper()

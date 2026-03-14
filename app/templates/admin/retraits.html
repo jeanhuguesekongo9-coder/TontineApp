@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Retraits - Admin{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Gestion des Retraits</h1>
+  <p class="page-subtitle">Traitez les demandes de retrait des membres</p>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #f0a500;">
+        <div style="font-size:1.6rem;font-weight:700;color:#f0a500;">{{ total_en_attente }}</div>
+        <small class="text-muted">En attente</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #e74c3c;">
+        <div style="font-size:1.4rem;font-weight:700;color:#e74c3c;">{{ "{:,.0f}".format(montant_en_attente) }}</div>
+        <small class="text-muted">FCFA à envoyer</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #27ae60;">
+        <div style="font-size:1.6rem;font-weight:700;color:#27ae60;">{{ total_valides }}</div>
+        <small class="text-muted">Retraits envoyés</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3" style="border-left:4px solid #1a1a2e;">
+        <div style="font-size:1.4rem;font-weight:700;color:#1a1a2e;">{{ "{:,.0f}".format(montant_valide) }}</div>
+        <small class="text-muted">FCFA envoyés total</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mb-4 d-flex gap-2 flex-wrap">
+    <a href="?statut=en_attente" class="btn {% if statut == 'en_attente' %}btn-warning{% else %}btn-outline-warning{% endif %}">⏳ En attente ({{ total_en_attente }})</a>
+    <a href="?statut=valide"     class="btn {% if statut == 'valide' %}btn-success{% else %}btn-outline-success{% endif %}">✅ Envoyés</a>
+    <a href="?statut=rejete"     class="btn {% if statut == 'rejete' %}btn-danger{% else %}btn-outline-danger{% endif %}">❌ Rejetés</a>
+    <a href="?statut=annule"     class="btn {% if statut == 'annule' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">🚫 Annulés</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if retraits %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Référence</th>
+              <th>Membre</th>
+              <th>Montant</th>
+              <th>Réseau</th>
+              <th>Numéro destinataire</th>
+              <th>Demandé le</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in retraits %}
+            <tr>
+              <td><code>{{ r.reference }}</code></td>
+              <td>
+                <strong>{{ r.utilisateur.profil.nom_complet if r.utilisateur.profil else r.utilisateur.email }}</strong><br>
+                <small class="text-muted">{{ r.utilisateur.email }}</small>
+              </td>
+              <td><strong style="color:#1a1a2e;font-size:1rem;">{{ "{:,.0f}".format(r.montant) }} FCFA</strong></td>
+              <td>
+                <span style="font-size:0.85rem;font-weight:600;">
+                  {{ reseaux.get(r.reseau, r.reseau) }}
+                </span>
+              </td>
+              <td><strong>{{ r.numero_telephone }}</strong></td>
+              <td>
+                <span style="font-size:0.85rem;">{{ r.created_at.strftime('%d/%m/%Y') }}</span><br>
+                <small class="text-muted">{{ r.created_at.strftime('%H:%M') }}</small>
+              </td>
+              <td>
+                {% if r.statut == 'en_attente' %}
+                <span class="badge bg-warning text-dark">⏳ En attente</span>
+                {% elif r.statut == 'valide' %}
+                <span class="badge bg-success">✅ Envoyé</span>
+                {% if r.reference_admin %}
+                <br><small style="color:#27ae60;">Réf. : {{ r.reference_admin }}</small>
+                {% endif %}
+                {% elif r.statut == 'rejete' %}
+                <span class="badge bg-danger">❌ Rejeté</span>
+                {% elif r.statut == 'annule' %}
+                <span class="badge bg-secondary">🚫 Annulé</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.statut == 'en_attente' %}
+                <!-- Bouton Valider avec modal -->
+                <button class="btn btn-sm btn-success mb-1" data-bs-toggle="modal" data-bs-target="#validerModal{{ r.id }}">
+                  ✅ Valider
+                </button>
+                <!-- Bouton Rejeter avec modal -->
+                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejeterModal{{ r.id }}">
+                  ❌ Rejeter
+                </button>
+
+                <!-- Modal Valider -->
+                <div class="modal fade" id="validerModal{{ r.id }}" tabindex="-1">
+                  <div class="modal-dialog"><div class="modal-content">
+                    <div class="modal-header" style="background:#f0fff4;">
+                      <h5 class="modal-title" style="color:#27ae60;">✅ Valider le retrait</h5>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.valider_retrait', retrait_id=r.id) }}">
+                      <div class="modal-body">
+                        <p>Membre : <strong>{{ r.utilisateur.profil.nom_complet if r.utilisateur.profil else r.utilisateur.email }}</strong></p>
+                        <p>Montant : <strong style="color:#27ae60;">{{ "{:,.0f}".format(r.montant) }} FCFA</strong></p>
+                        <p>Envoyer via : <strong>{{ reseaux.get(r.reseau, r.reseau) }}</strong> → <strong>{{ r.numero_telephone }}</strong></p>
+                        <hr>
+                        <label class="form-label fw-bold">Référence de la transaction envoyée <span class="text-danger">*</span></label>
+                        <input type="text" name="reference_envoi" class="form-control"
+                               placeholder="Ex : TXN-WAVE-20240315-XXXX" required>
+                        <small class="text-muted">Copiez la référence générée par Wave/Orange/MTN après l'envoi.</small>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success">Confirmer l'envoi ✅</button>
+                      </div>
+                    </form>
+                  </div></div>
+                </div>
+
+                <!-- Modal Rejeter -->
+                <div class="modal fade" id="rejeterModal{{ r.id }}" tabindex="-1">
+                  <div class="modal-dialog"><div class="modal-content">
+                    <div class="modal-header" style="background:#fff5f5;">
+                      <h5 class="modal-title" style="color:#e74c3c;">❌ Rejeter le retrait</h5>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.rejeter_retrait', retrait_id=r.id) }}">
+                      <div class="modal-body">
+                        <p>Retrait de <strong>{{ "{:,.0f}".format(r.montant) }} FCFA</strong> — {{ r.numero_telephone }}</p>
+                        <label class="form-label fw-bold">Motif du rejet <span class="text-danger">*</span></label>
+                        <textarea name="motif" class="form-control" rows="2"
+                                  placeholder="Ex : Numéro incorrect, compte bloqué..." required></textarea>
+                        <small class="text-muted">Le membre sera notifié avec ce motif. Son solde ne sera pas débité.</small>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                      </div>
+                    </form>
+                  </div></div>
+                </div>
+
+                {% else %}
+                <small class="text-muted">
+                  {% if r.traite_le %}{{ r.traite_le.strftime('%d/%m/%Y') }}{% endif %}
+                </small>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div style="font-size:3rem;">💸</div>
+        <p class="text-muted mt-2">Aucun retrait {{ statut.replace('_', ' ') }} pour le moment.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

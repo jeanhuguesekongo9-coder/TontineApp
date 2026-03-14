@@ -132,3 +132,84 @@ def ma_tontine():
     return render_template("paiements/ma_tontine.html",
         memberships=memberships,
         penalites_actives=penalites_actives)
+@paiements.route("/retirer", methods=["GET", "POST"])
+@login_required
+def retirer():
+    from ..models import Retrait
+    solde = get_ou_creer_solde(current_user.id)
+    # Verifier si un retrait est déjà en attente
+    retrait_en_cours = Retrait.query.filter_by(
+        user_id=current_user.id,
+        statut="en_attente"
+    ).first()
+    if request.method == "POST":
+        if retrait_en_cours:
+            flash("Vous avez déjà un retrait en attente. Attendez qu'il soit traité.", "warning")
+            return redirect(url_for("paiements.mes_retraits"))
+        montant = float(request.form.get("montant", 0))
+        reseau = request.form.get("reseau", "").strip()
+        numero = request.form.get("numero_telephone", "").strip()
+        if montant < 1000:
+            flash("Montant minimum de retrait : 1 000 FCFA.", "danger")
+            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
+        if montant > solde.montant:
+            flash(f"Solde insuffisant. Votre solde disponible est de {solde.montant:,.0f} FCFA.", "danger")
+            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
+        if not reseau or reseau not in RESEAUX:
+            flash("Réseau invalide.", "danger")
+            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
+        if not numero:
+            flash("Numéro de téléphone obligatoire.", "danger")
+            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
+        retrait = Retrait(
+            reference=Retrait.generer_reference(),
+            user_id=current_user.id,
+            montant=montant,
+            reseau=reseau,
+            numero_telephone=numero,
+            statut="en_attente"
+        )
+        db.session.add(retrait)
+        notif = Notification(
+            user_id=current_user.id,
+            titre="Demande de retrait reçue",
+            message=f"Votre demande de retrait de {montant:,.0f} FCFA via {RESEAUX[reseau]['nom']} vers le {numero} est en cours de traitement. Délai : 24h.",
+            type_notif="info",
+            lien=url_for("paiements.mes_retraits")
+        )
+        db.session.add(notif)
+        db.session.commit()
+        flash(f"Demande de retrait de {montant:,.0f} FCFA soumise ! Traitement sous 24h.", "success")
+        return redirect(url_for("paiements.mes_retraits"))
+    return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
+
+@paiements.route("/mes-retraits")
+@login_required
+def mes_retraits():
+    from ..models import Retrait
+    retraits = Retrait.query.filter_by(user_id=current_user.id).order_by(Retrait.created_at.desc()).all()
+    solde = get_ou_creer_solde(current_user.id)
+    return render_template("paiements/mes_retraits.html", retraits=retraits, solde=solde, reseaux=RESEAUX)
+
+@paiements.route("/retraits/<int:retrait_id>/annuler", methods=["POST"])
+@login_required
+def annuler_retrait(retrait_id):
+    from ..models import Retrait
+    retrait = Retrait.query.filter_by(id=retrait_id, user_id=current_user.id).first_or_404()
+    if retrait.statut != "en_attente":
+        flash("Ce retrait ne peut plus être annulé.", "warning")
+        return redirect(url_for("paiements.mes_retraits"))
+    retrait.statut = "annule"
+    retrait.traite_le = datetime.utcnow()
+    retrait.note_admin = "Annulé par le membre"
+    notif = Notification(
+        user_id=current_user.id,
+        titre="Retrait annulé",
+        message=f"Votre demande de retrait de {retrait.montant:,.0f} FCFA a été annulée.",
+        type_notif="info",
+        lien=url_for("paiements.mes_retraits")
+    )
+    db.session.add(notif)
+    db.session.commit()
+    flash("Demande de retrait annulée.", "info")
+    return redirect(url_for("paiements.mes_retraits"))

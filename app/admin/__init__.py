@@ -391,6 +391,9 @@ def tableau_de_bord():
     membres_actifs = MembreTontine.query.filter_by(statut="actif").count()
     membres_suspendus = MembreTontine.query.filter_by(statut="suspendu").count()
     recharges_attente = Recharge.query.filter_by(statut="en_attente").count()
+    from ..models import Retrait
+    retraits_attente = Retrait.query.filter_by(statut="en_attente").count()
+    montant_retraits_attente = db.session.query(db.func.sum(Retrait.montant)).filter_by(statut="en_attente").scalar() or 0
     penalites_cours = Penalite.query.filter_by(statut="en_cours").count()
     mises_en_demeure = Penalite.query.filter_by(statut="mise_en_demeure").count()
     total_penalites_dues = db.session.query(db.func.sum(Penalite.montant_penalite)).filter(
@@ -429,6 +432,8 @@ def tableau_de_bord():
         membres_actifs=membres_actifs,
         membres_suspendus=membres_suspendus,
         recharges_attente=recharges_attente,
+        retraits_attente=retraits_attente,
+        montant_retraits_attente=montant_retraits_attente,
         penalites_cours=penalites_cours,
         mises_en_demeure=mises_en_demeure,
         total_penalites_dues=total_penalites_dues,
@@ -464,3 +469,111 @@ def voir_contrat_admin(reference):
         flash("Ce contrat n'a pas encore de contenu archivé.", "warning")
         return redirect(url_for("admin.gerer_contrats"))
     return contrat.contenu_html, 200, {"Content-Type": "text/html; charset=utf-8"}
+@admin.route("/retraits")
+@admin_requis
+def gerer_retraits():
+    from ..models import Retrait, Profil
+    statut = request.args.get("statut", "en_attente")
+    retraits = Retrait.query.filter_by(statut=statut).order_by(Retrait.created_at.desc()).all()
+    total_en_attente = Retrait.query.filter_by(statut="en_attente").count()
+    montant_en_attente = db.session.query(db.func.sum(Retrait.montant)).filter_by(statut="en_attente").scalar() or 0
+    total_valides = Retrait.query.filter_by(statut="valide").count()
+    montant_valide = db.session.query(db.func.sum(Retrait.montant)).filter_by(statut="valide").scalar() or 0
+    reseaux = {
+        "wave_sn": "Wave Sénégal",
+        "wave_ci": "Wave Côte d'Ivoire",
+        "orange_sn": "Orange Money Sénégal",
+        "orange_ci": "Orange Money CI",
+        "mtn_ci": "MTN CI"
+    }
+    return render_template("admin/retraits.html",
+        retraits=retraits, statut=statut,
+        total_en_attente=total_en_attente,
+        montant_en_attente=montant_en_attente,
+        total_valides=total_valides,
+        montant_valide=montant_valide,
+        reseaux=reseaux
+    )
+
+@admin.route("/retraits/<int:retrait_id>/valider", methods=["POST"])
+@admin_requis
+def valider_retrait(retrait_id):
+    from ..models import Retrait, Solde, Transaction, Notification, AuditLog
+    retrait = Retrait.query.get_or_404(retrait_id)
+    if retrait.statut != "en_attente":
+        flash("Ce retrait a déjà été traité.", "warning")
+        return redirect(url_for("admin.gerer_retraits"))
+    reference_envoi = request.form.get("reference_envoi", "").strip()
+    if not reference_envoi:
+        flash("La référence de transaction est obligatoire pour valider.", "danger")
+        return redirect(url_for("admin.gerer_retraits"))
+    # Débiter le solde du membre
+    solde = Solde.query.filter_by(user_id=retrait.user_id).first()
+    if not solde or solde.montant < retrait.montant:
+        flash(f"Solde insuffisant pour ce membre ({solde.montant:,.0f} FCFA disponible).", "danger")
+        return redirect(url_for("admin.gerer_retraits"))
+    solde_avant = solde.montant
+    solde.montant -= retrait.montant
+    # Enregistrer la transaction
+    trx = Transaction(
+        reference=Transaction.generer_reference(),
+        user_id=retrait.user_id,
+        type_transaction="retrait",
+        montant=retrait.montant,
+        sens="debit",
+        solde_avant=solde_avant,
+        solde_apres=solde.montant,
+        description=f"Retrait {retrait.reference} via {retrait.reseau} vers {retrait.numero_telephone} — Réf. envoi : {reference_envoi}"
+    )
+    db.session.add(trx)
+    # Mettre à jour le retrait
+    retrait.statut = "valide"
+    retrait.reference_admin = reference_envoi
+    retrait.traite_le = datetime.utcnow()
+    # Notifier le membre
+    reseaux_noms = {
+        "wave_sn": "Wave Sénégal", "wave_ci": "Wave Côte d'Ivoire",
+        "orange_sn": "Orange Money Sénégal", "orange_ci": "Orange Money CI", "mtn_ci": "MTN CI"
+    }
+    nom_reseau = reseaux_noms.get(retrait.reseau, retrait.reseau)
+    notif = Notification(
+        user_id=retrait.user_id,
+        titre="Retrait envoyé ✅",
+        message=f"Votre retrait de {retrait.montant:,.0f} FCFA a été envoyé via {nom_reseau} vers le {retrait.numero_telephone}. Référence : {reference_envoi}. Nouveau solde : {solde.montant:,.0f} FCFA.",
+        type_notif="success",
+        lien="/paiements/mes-retraits"
+    )
+    db.session.add(notif)
+    AuditLog.log(current_user.id, "retrait_valide",
+        f"Retrait {retrait.reference}, {retrait.montant:,.0f} FCFA, user {retrait.user_id}, réf. {reference_envoi}",
+        ip=request.remote_addr)
+    db.session.commit()
+    flash(f"Retrait de {retrait.montant:,.0f} FCFA validé ! Solde membre débité.", "success")
+    return redirect(url_for("admin.gerer_retraits"))
+
+@admin.route("/retraits/<int:retrait_id>/rejeter", methods=["POST"])
+@admin_requis
+def rejeter_retrait(retrait_id):
+    from ..models import Retrait, Notification, AuditLog
+    retrait = Retrait.query.get_or_404(retrait_id)
+    if retrait.statut != "en_attente":
+        flash("Ce retrait a déjà été traité.", "warning")
+        return redirect(url_for("admin.gerer_retraits"))
+    motif = request.form.get("motif", "Rejeté par l'administrateur").strip()
+    retrait.statut = "rejete"
+    retrait.note_admin = motif
+    retrait.traite_le = datetime.utcnow()
+    notif = Notification(
+        user_id=retrait.user_id,
+        titre="Retrait rejeté",
+        message=f"Votre demande de retrait de {retrait.montant:,.0f} FCFA a été rejetée. Motif : {motif}. Votre solde n'a pas été débité.",
+        type_notif="danger",
+        lien="/paiements/mes-retraits"
+    )
+    db.session.add(notif)
+    AuditLog.log(current_user.id, "retrait_rejete",
+        f"Retrait {retrait.reference}, motif : {motif}",
+        ip=request.remote_addr)
+    db.session.commit()
+    flash("Retrait rejeté. Le membre en a été notifié.", "warning")
+    return redirect(url_for("admin.gerer_retraits"))
