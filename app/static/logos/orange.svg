@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-<rect width="200" height="200" rx="100" fill="#FF6600"/>
-<text x="100" y="125" font-family="Arial Black" font-size="90" font-weight="900" fill="white" text-anchor="middle">O</text>
+<rect width="200" height="200" fill="white"/>
+<rect width="200" height="200" fill="#FF6600" opacity="0.08"/>
+<g transform="translate(20,20)">
+  <polygon points="45,0 160,0 160,30 75,30 75,115 45,115" fill="#FF6600"/>
+  <polygon points="115,160 0,160 0,130 85,130 85,45 115,45" fill="#1a1a2e"/>
+  <polygon points="130,145 160,115 160,160 115,160" fill="#FF6600"/>
+  <polygon points="30,15 0,45 0,0 45,0" fill="#1a1a2e"/>
+</g>
 </svg>
