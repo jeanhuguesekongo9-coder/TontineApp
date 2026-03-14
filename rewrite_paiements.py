@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿texte = """# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from datetime import datetime
@@ -76,3 +76,6 @@ def recharger():
 def facture(reference):
     transaction = Transaction.query.filter_by(reference=reference, user_id=current_user.id).first_or_404()
     return render_template("paiements/facture.html", transaction=transaction)
+"""
+open("app/paiements/__init__.py", "w", encoding="utf-8").write(texte)
+print("OK!")
