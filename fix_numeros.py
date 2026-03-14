@@ -1,5 +1,0 @@
-﻿content = open("app/paiements/__init__.py", encoding="utf-8-sig", errors="replace").read()
-content = content.replace('"+221 77 XXX XX XX",\n        "couleur": "#1DC8EE",\n        "instruction": "Cliquez le bouton, payez sur Wave, puis uploadez la capture du SMS de confirmation."\n    },\n    "wave_ci"', '"+221 78 538 53 10",\n        "couleur": "#1DC8EE",\n        "instruction": "Cliquez le bouton, payez sur Wave, puis uploadez la capture du SMS de confirmation."\n    },\n    "wave_ci"')
-content = content.replace('"+225 07 XXX XX XX",\n        "couleur": "#1DC8EE"', '"+225 05 84 02 23 23",\n        "couleur": "#1DC8EE"')
-open("app/paiements/__init__.py", "w", encoding="utf-8").write(content)
-print("OK!")

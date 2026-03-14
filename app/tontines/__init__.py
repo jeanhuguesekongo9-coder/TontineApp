@@ -1,4 +1,4 @@
-﻿from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from ..models import db, Tontine, MembreTontine, Paiement, AuditLog, Notification
 
@@ -18,42 +18,25 @@ def liste():
 @login_required
 def rejoindre(tontine_id):
     if not current_user.kyc_valide:
-        flash("Votre dossier doit etre approuve avant de rejoindre une tontine.", "warning")
+        flash("Votre dossier KYC doit être approuvé avant de rejoindre une tontine.", "warning")
         return redirect(url_for("kyc.statut"))
     tontine = Tontine.query.get_or_404(tontine_id)
     if tontine.statut != "recrutement":
-        flash("Cette tontine n accepte plus de membres.", "warning")
+        flash("Cette tontine n'accepte plus de membres.", "warning")
         return redirect(url_for("tontines.liste"))
     if tontine.nombre_membres >= tontine.max_membres:
-        flash("Cette tontine est complete.", "warning")
+        flash("Cette tontine est complète.", "warning")
         return redirect(url_for("tontines.liste"))
     deja = MembreTontine.query.filter_by(user_id=current_user.id, tontine_id=tontine_id).first()
     if deja:
-        flash("Vous êtes déjà membre.", "info")
+        flash("Vous êtes déjà membre de cette tontine.", "info")
         return redirect(url_for("tontines.detail", tontine_id=tontine_id))
     revenu = current_user.profil.revenu_mensuel or 0
     if revenu < tontine.montant_panier * 1.5:
         flash(f"Revenu insuffisant pour ce panier (minimum {tontine.montant_panier * 1.5:,.0f} FCFA/mois).", "danger")
         return redirect(url_for("tontines.liste"))
-    if request.method == "POST":
-        if not request.form.get("accepter_contrat"):
-            flash("Vous devez accepter les termes du contrat.", "danger")
-            return render_template("tontines/rejoindre.html", tontine=tontine)
-        membre = MembreTontine(user_id=current_user.id, tontine_id=tontine_id)
-        db.session.add(membre)
-        tontine.nombre_membres += 1
-        notif = Notification(user_id=current_user.id,
-            titre="Adhesion confirmee",
-            message=f"Vous avez rejoint la tontine {tontine.nom}.",
-            type_notif="success",
-            lien=url_for("tontines.mes_tontines"))
-        db.session.add(notif)
-        db.session.commit()
-        AuditLog.log(current_user.id, "rejoindre_tontine", f"Tontine: {tontine.code}", ip=request.remote_addr)
-        db.session.commit()
-        flash(f"Felicitations ! Vous avez rejoint {tontine.nom}.", "success")
-        return redirect(url_for("tontines.mes_tontines"))
-    return render_template("tontines/rejoindre.html", tontine=tontine)
+    # CORRECTION CRITIQUE : rediriger vers le contrat obligatoire
+    return redirect(url_for("contrats.voir_contrat", tontine_id=tontine_id))
 
 @tontines.route("/detail/<int:tontine_id>")
 @login_required
@@ -72,4 +55,3 @@ def detail(tontine_id):
 def mes_tontines():
     memberships = MembreTontine.query.filter_by(user_id=current_user.id).all()
     return render_template("tontines/mes_tontines.html", memberships=memberships)
-
