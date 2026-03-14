@@ -1,15 +1,10 @@
-# -*- coding: utf-8 -*-
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
-from datetime import datetime
-import secrets
+﻿# Mettre a jour la route signer_contrat pour stocker le HTML complet
+content = open("app/contrats/__init__.py", encoding="utf-8-sig", errors="replace").read()
 
-contrats = Blueprint("contrats", __name__)
-
-
+nouvelle_logique = """
 def generer_contenu_html(membre_nom, membre_email, tontine, reference_contrat, ip_signature, date_signature):
     from datetime import datetime
-    return f"""<!DOCTYPE html>
+    return f\"\"\"<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -165,55 +160,19 @@ def generer_contenu_html(membre_nom, membre_email, tontine, reference_contrat, i
   </div>
 
 </body>
-</html>"""
+</html>\"\"\"
+"""
 
-@contrats.route("/signer/<int:tontine_id>", methods=["GET"])
-@login_required
-def voir_contrat(tontine_id):
-    from ..models import Tontine, Contrat, Profil
-    tontine = Tontine.query.get_or_404(tontine_id)
-    profil = Profil.query.filter_by(user_id=current_user.id).first()
-    membre_nom = profil.nom_complet if profil else current_user.email
-    contrat_existant = Contrat.query.filter_by(
-        user_id=current_user.id,
-        tontine_id=tontine_id
-    ).first()
-    deja_signe = contrat_existant and contrat_existant.signe
-    reference_contrat = contrat_existant.reference if contrat_existant else "CTR-" + secrets.token_hex(6).upper()
-    return render_template("contrats/contrat.html",
-        tontine=tontine,
-        membre_nom=membre_nom,
-        membre_email=current_user.email,
-        date_emission=datetime.utcnow().strftime("%d/%m/%Y"),
-        reference_contrat=reference_contrat,
-        deja_signe=deja_signe,
-        contrat=contrat_existant
-    )
+# Injecter la fonction avant les routes
+content = content.replace(
+    "@contrats.route",
+    nouvelle_logique + "\n@contrats.route",
+    1
+)
 
-@contrats.route("/signer/<int:tontine_id>", methods=["POST"])
-@login_required
-def signer_contrat(tontine_id):
-    from ..models import db, Tontine, Contrat, MembreTontine, Notification, AuditLog, Profil
-    tontine = Tontine.query.get_or_404(tontine_id)
-    contrat_existant = Contrat.query.filter_by(
-        user_id=current_user.id,
-        tontine_id=tontine_id
-    ).first()
-    if contrat_existant and contrat_existant.signe:
-        flash("Vous avez déjà signé ce contrat.", "info")
-        return redirect(url_for("paiements.ma_tontine"))
-    if not contrat_existant:
-        contrat_existant = Contrat(
-            reference="CTR-" + secrets.token_hex(6).upper(),
-            user_id=current_user.id,
-            tontine_id=tontine_id
-        )
-        db.session.add(contrat_existant)
-        db.session.flush()
-    contrat_existant.signe = True
-    contrat_existant.signe_le = datetime.utcnow()
-    contrat_existant.ip_signature = request.remote_addr
-    contrat_existant.hash_contrat = secrets.token_hex(32)
+# Mettre a jour signer_contrat pour stocker le HTML
+ancien = """    contrat_existant.hash_contrat = secrets.token_hex(32)"""
+nouveau = """    contrat_existant.hash_contrat = secrets.token_hex(32)
     contrat_existant.contenu_html = generer_contenu_html(
         membre_nom=profil.nom_complet if profil else current_user.email,
         membre_email=current_user.email,
@@ -221,91 +180,8 @@ def signer_contrat(tontine_id):
         reference_contrat=contrat_existant.reference,
         ip_signature=request.remote_addr,
         date_signature=datetime.utcnow().strftime("%d/%m/%Y à %H:%M")
-    )
-    membre = MembreTontine.query.filter_by(
-        user_id=current_user.id,
-        tontine_id=tontine_id
-    ).first()
-    if not membre:
-        nb_membres = MembreTontine.query.filter_by(tontine_id=tontine_id, statut="actif").count()
-        membre = MembreTontine(
-            user_id=current_user.id,
-            tontine_id=tontine_id,
-            ordre_collecte=nb_membres + 1,
-            statut="actif",
-            contrat_signe=True,
-            contrat_signe_le=datetime.utcnow()
-        )
-        db.session.add(membre)
-        tontine.nombre_membres = nb_membres + 1
-    else:
-        membre.contrat_signe = True
-        membre.contrat_signe_le = datetime.utcnow()
-    profil = Profil.query.filter_by(user_id=current_user.id).first()
-    notif = Notification(
-        user_id=current_user.id,
-        titre="Contrat signé — Bienvenue dans la tontine !",
-        message=f"Votre contrat de participation à la tontine {tontine.code} a été signé avec succès. Vous êtes officiellement membre. Référence : {contrat_existant.reference}",
-        type_notif="success",
-        lien=url_for("paiements.ma_tontine")
-    )
-    db.session.add(notif)
-    AuditLog.log(
-        current_user.id,
-        "contrat_signe",
-        f"Tontine {tontine.code}, réf. contrat {contrat_existant.reference}, IP : {request.remote_addr}"
-    )
-    db.session.commit()
-    flash(f"Contrat signé avec succès ! Bienvenue dans la tontine {tontine.code}. Référence : {contrat_existant.reference}", "success")
-    return redirect(url_for("paiements.ma_tontine"))
+    )"""
 
-@contrats.route("/mes-contrats")
-@login_required
-def mes_contrats():
-    from ..models import Contrat
-    contrats_liste = Contrat.query.filter_by(user_id=current_user.id).order_by(Contrat.created_at.desc()).all()
-    return render_template("contrats/mes_contrats.html", contrats=contrats_liste)
-@contrats.route("/voir/<string:reference>")
-@login_required
-def voir_contrat_archive(reference):
-    from ..models import Contrat
-    contrat = Contrat.query.filter_by(
-        reference=reference,
-        user_id=current_user.id
-    ).first_or_404()
-    if not contrat.contenu_html:
-        flash("Le contenu archivé de ce contrat n'est pas encore disponible.", "warning")
-        return redirect(url_for("contrats.mes_contrats"))
-    return contrat.contenu_html, 200, {"Content-Type": "text/html; charset=utf-8"}
-
-@contrats.route("/telecharger/<string:reference>")
-@login_required
-def telecharger_contrat(reference):
-    from ..models import Contrat
-    from flask import Response
-    contrat = Contrat.query.filter_by(
-        reference=reference,
-        user_id=current_user.id
-    ).first_or_404()
-    if not contrat.contenu_html:
-        flash("Le contenu archivé de ce contrat n'est pas encore disponible.", "warning")
-        return redirect(url_for("contrats.mes_contrats"))
-    html_avec_print = contrat.contenu_html.replace(
-        "</head>",
-        """<style>
-          @media print {
-            body { margin: 20mm; }
-            .no-print { display: none !important; }
-          }
-        </style>
-        <script>window.onload = function() { window.print(); }</script>
-        </head>"""
-    )
-    return Response(
-        html_avec_print,
-        mimetype="text/html",
-        headers={
-            "Content-Disposition": f"inline; filename=Contrat_{reference}.html",
-            "Content-Type": "text/html; charset=utf-8"
-        }
-    )
+content = content.replace(ancien, nouveau)
+open("app/contrats/__init__.py", "w", encoding="utf-8").write(content)
+print("OK stockage HTML contrat!")

@@ -437,3 +437,30 @@ def tableau_de_bord():
         kyc_attente=kyc_attente,
         retardataires=retardataires_detail
     )
+@admin.route("/contrats")
+@admin_requis
+def gerer_contrats():
+    from ..models import Contrat, Utilisateur, Profil
+    statut = request.args.get("statut", "signes")
+    if statut == "signes":
+        contrats = Contrat.query.filter_by(signe=True).order_by(Contrat.signe_le.desc()).all()
+    else:
+        contrats = Contrat.query.filter_by(signe=False).order_by(Contrat.created_at.desc()).all()
+    total_signes = Contrat.query.filter_by(signe=True).count()
+    total_en_attente = Contrat.query.filter_by(signe=False).count()
+    return render_template("admin/contrats.html",
+        contrats=contrats,
+        statut=statut,
+        total_signes=total_signes,
+        total_en_attente=total_en_attente
+    )
+
+@admin.route("/contrats/voir/<string:reference>")
+@admin_requis
+def voir_contrat_admin(reference):
+    from ..models import Contrat
+    contrat = Contrat.query.filter_by(reference=reference).first_or_404()
+    if not contrat.contenu_html:
+        flash("Ce contrat n'a pas encore de contenu archivé.", "warning")
+        return redirect(url_for("admin.gerer_contrats"))
+    return contrat.contenu_html, 200, {"Content-Type": "text/html; charset=utf-8"}

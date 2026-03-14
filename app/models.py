@@ -180,6 +180,7 @@ class Contrat(db.Model):
     tontine_id = db.Column(db.Integer, db.ForeignKey("tontines.id"), nullable=False)
     fichier_pdf = db.Column(db.String(255))
     hash_contrat = db.Column(db.String(64))
+    contenu_html = db.Column(db.Text)
     signe = db.Column(db.Boolean, default=False)
     signe_le = db.Column(db.DateTime)
     ip_signature = db.Column(db.String(45))
