@@ -15,7 +15,7 @@
             <div class="col-6">
               <input type="radio" name="reseau" id="{{ code }}" value="{{ code }}" class="d-none reseau-radio" required>
               <label for="{{ code }}" class="reseau-card w-100 text-center p-3" style="border:2px solid #eee;border-radius:12px;cursor:pointer;transition:all 0.2s;">
-                <div style="font-size:1.8rem;">{{ info.flag }}</div>
+                {% if info.logo %}<img src="{{ info.logo }}" style="height:40px;object-fit:contain;margin-bottom:5px;" onerror="this.style.display='none'">{% else %}<div style="font-size:1.8rem;">{{ info.flag }}</div>{% endif %}
                 <div style="font-weight:600;font-size:0.9rem;margin-top:5px;">{{ info.nom }}</div>
                 <div style="font-size:0.75rem;color:#999;">{{ info.numero }}</div>
               </label>
