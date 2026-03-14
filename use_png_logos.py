@@ -1,0 +1,6 @@
+﻿content = open("app/templates/paiements/recharger.html", encoding="utf-8-sig", errors="replace").read()
+content = content.replace('/static/logos/wave.svg', '/static/logos/wave.png')
+content = content.replace('/static/logos/orange.svg', '/static/logos/orange.png')
+content = content.replace('/static/logos/mtn.svg', '/static/logos/mtn.png')
+open("app/templates/paiements/recharger.html", "w", encoding="utf-8").write(content)
+print("OK!")
