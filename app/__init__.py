@@ -58,6 +58,10 @@ def create_app(config_name="default"):
             ).order_by(Notification.created_at.desc()).limit(5).all()
         return dict(notifications_non_lues=notifs)
 
-    from .scheduler import init_scheduler
-    init_scheduler(app)
+    try:
+        from .scheduler import init_scheduler
+        init_scheduler(app)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Scheduler non demarre: {e}")
     return app
