@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Recharges - Admin{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Gestion des Recharges</h1>
+  <p class="page-subtitle">Validez ou rejetez les demandes de recharge</p>
+  <div class="mb-4 d-flex gap-2 flex-wrap">
+    <a href="?statut=en_attente" class="btn {% if statut == 'en_attente' %}btn-warning{% else %}btn-outline-warning{% endif %}">⏳ En attente</a>
+    <a href="?statut=valide" class="btn {% if statut == 'valide' %}btn-success{% else %}btn-outline-success{% endif %}">✅ Validees</a>
+    <a href="?statut=rejete" class="btn {% if statut == 'rejete' %}btn-danger{% else %}btn-outline-danger{% endif %}">❌ Rejetees</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      {% if recharges %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Reference</th>
+              <th>Membre</th>
+              <th>Reseau</th>
+              <th>Montant</th>
+              <th>Ref. Transaction</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recharges %}
+            <tr>
+              <td><code>{{ r.reference }}</code></td>
+              <td>
+                <strong>{{ r.utilisateur.profil.prenom if r.utilisateur.profil else r.utilisateur.email }}</strong><br>
+                <small class="text-muted">{{ r.numero_telephone }}</small>
+              </td>
+              <td><span class="badge" style="background:#e9ecef;color:#333;padding:5px 10px;">{{ RESEAUX.get(r.reseau, r.reseau) }}</span></td>
+              <td><strong style="color:#1a1a2e;">{{ "{:,.0f}".format(r.montant) }} FCFA</strong></td>
+              <td><code style="font-size:0.8rem;">{{ r.reference_transaction }}</code></td>
+              <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>
+                {% if statut == 'en_attente' %}
+                <form method="POST" action="{{ url_for('admin.valider_recharge', recharge_id=r.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Valider cette recharge ?')">✅ Valider</button>
+                </form>
+                <button class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#rejetModal{{ r.id }}">❌ Rejeter</button>
+                <div class="modal fade" id="rejetModal{{ r.id }}" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header"><h5 class="modal-title">Rejeter la recharge</h5></div>
+                      <form method="POST" action="{{ url_for('admin.rejeter_recharge', recharge_id=r.id) }}">
+                        <div class="modal-body">
+                          <p>Recharge <strong>{{ r.reference }}</strong> — {{ "{:,.0f}".format(r.montant) }} FCFA</p>
+                          <label class="form-label">Motif du rejet</label>
+                          <textarea name="note" class="form-control" rows="3" placeholder="Ex: Reference de transaction invalide..." required></textarea>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                          <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% elif statut == 'valide' %}
+                <span style="color:#27ae60;font-size:0.85rem;">✅ Valide le {{ r.valide_le.strftime('%d/%m/%Y') if r.valide_le else '-' }}</span>
+                {% else %}
+                <span style="color:#e74c3c;font-size:0.85rem;">❌ {{ r.note_admin or 'Rejete' }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div style="font-size:3rem;">📭</div>
+        <p class="text-muted mt-2">Aucune recharge {{ statut.replace('_', ' ') }} pour le moment.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

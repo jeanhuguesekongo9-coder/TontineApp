@@ -1,0 +1,85 @@
+﻿content = """{% extends "base.html" %}
+{% block title %}Gestion des Soldes - Admin{% endblock %}
+{% block content %}
+<div class="fade-in">
+  <h1 class="page-title">Soldes des membres</h1>
+  <p class="page-subtitle">Vue d ensemble de tous les portefeuilles</p>
+
+  <!-- Total general -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card text-center" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;border-radius:20px;">
+        <div class="card-body p-4">
+          <p style="color:#f0a500;font-size:0.9rem;">TOTAL EN CAISSE</p>
+          <h2 style="font-size:2rem;font-weight:700;color:#fff;">{{ "{:,.0f}".format(total) }}</h2>
+          <p style="color:#aaa;font-size:0.85rem;">FCFA</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-4">
+        <div style="font-size:2rem;">👥</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;">{{ soldes|length }}</div>
+        <small class="text-muted">Membres avec portefeuille</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center p-4">
+        <div style="font-size:2rem;">⚠️</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#e74c3c;">{{ soldes|selectattr('montant','lt',5000)|list|length }}</div>
+        <small class="text-muted">Soldes insuffisants (moins de 5 000 FCFA)</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des soldes -->
+  <div class="card">
+    <div class="card-body">
+      <h5 style="font-family:Playfair Display,serif;color:#1a1a2e;margin-bottom:1rem;">Detail par membre</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>#</th>
+              <th>Membre</th>
+              <th>Email</th>
+              <th>Solde</th>
+              <th>Statut</th>
+              <th>Derniere mise a jour</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in soldes %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>
+                <strong>{{ s.utilisateur.profil.prenom if s.utilisateur.profil else '-' }}
+                {{ s.utilisateur.profil.nom if s.utilisateur.profil else '' }}</strong>
+              </td>
+              <td><small>{{ s.utilisateur.email }}</small></td>
+              <td>
+                <strong style="font-size:1.1rem;color:{% if s.montant >= 5000 %}#27ae60{% elif s.montant > 0 %}#f0a500{% else %}#e74c3c{% endif %};">
+                  {{ "{:,.0f}".format(s.montant) }} FCFA
+                </strong>
+              </td>
+              <td>
+                {% if s.montant >= 5000 %}
+                <span class="badge badge-success">✅ OK</span>
+                {% elif s.montant > 0 %}
+                <span class="badge badge-warning">⚠️ Faible</span>
+                {% else %}
+                <span class="badge badge-danger">❌ Vide</span>
+                {% endif %}
+              </td>
+              <td><small class="text-muted">{{ s.updated_at.strftime('%d/%m/%Y %H:%M') if s.updated_at else '-' }}</small></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}"""
+open("app/templates/admin/soldes.html", "w", encoding="utf-8").write(content)
+print("OK!")
