@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿texte = """# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from datetime import datetime
@@ -10,38 +10,53 @@ paiements = Blueprint("paiements", __name__)
 RESEAUX = {
     "wave_sn": {
         "nom": "Wave Senegal",
+        "flag": "SN",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Wave_money_logo.svg/200px-Wave_money_logo.svg.png",
         "type": "link",
         "base_url": "https://pay.wave.com/m/M_sn_XhdrMMWqgQ6I/c/sn/?amount=",
-        "numero": "+221 78 538 53 10",
+        "numero": "+221 77 XXX XX XX",
         "couleur": "#1DC8EE",
+        "instruction": "Cliquez le bouton, payez sur Wave, puis uploadez la capture du SMS de confirmation."
     },
     "wave_ci": {
         "nom": "Wave Cote d Ivoire",
+        "flag": "CI",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Wave_money_logo.svg/200px-Wave_money_logo.svg.png",
         "type": "link",
         "base_url": "https://pay.wave.com/m/M_sn_XhdrMMWqgQ6I/c/sn/?amount=",
-        "numero": "+225 05 84 02 23 23",
+        "numero": "+225 07 XXX XX XX",
         "couleur": "#1DC8EE",
+        "instruction": "Cliquez le bouton, payez sur Wave, puis uploadez la capture du SMS de confirmation."
     },
     "orange_sn": {
         "nom": "Orange Money Senegal",
+        "flag": "SN",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Orange_logo.svg/200px-Orange_logo.svg.png",
         "type": "ussd",
         "ussd_pattern": "*144*1*221785385310*{montant}#",
         "numero": "+221 78 538 53 10",
         "couleur": "#FF6600",
+        "instruction": "Composez le code USSD ou transferez au +221 78 538 53 10, puis uploadez la capture."
     },
     "orange_ci": {
         "nom": "Orange Money CI",
+        "flag": "CI",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Orange_logo.svg/200px-Orange_logo.svg.png",
         "type": "ussd",
         "ussd_pattern": "*144*1*2250708224241*{montant}#",
         "numero": "+225 07 08 22 42 41",
         "couleur": "#FF6600",
+        "instruction": "Composez le code USSD ou transferez au +225 07 08 22 42 41, puis uploadez la capture."
     },
     "mtn_ci": {
         "nom": "MTN CI",
+        "flag": "CI",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/MTN_Logo.svg/200px-MTN_Logo.svg.png",
         "type": "ussd",
         "ussd_pattern": "*133*1*2250584022323*{montant}#",
         "numero": "+225 05 84 02 23 23",
         "couleur": "#FFCC00",
+        "instruction": "Composez le code USSD ou transferez au +225 05 84 02 23 23, puis uploadez la capture."
     },
 }
 
@@ -111,7 +126,7 @@ def recharger():
         )
         db.session.add(notif)
         db.session.commit()
-        flash("Recharge soumise ! Verification par l admin sous 24h.", "success")
+        flash("Recharge soumise avec succes ! L admin va verifier votre capture sous 24h.", "success")
         return redirect(url_for("paiements.dashboard"))
     return render_template("paiements/recharger.html", reseaux=RESEAUX)
 
@@ -120,3 +135,6 @@ def recharger():
 def facture(reference):
     transaction = Transaction.query.filter_by(reference=reference, user_id=current_user.id).first_or_404()
     return render_template("paiements/facture.html", transaction=transaction)
+"""
+open("app/paiements/__init__.py", "w", encoding="utf-8").write(texte)
+print("OK!")

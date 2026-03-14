@@ -1,4 +1,6 @@
-{% extends "base.html" %}
+﻿content = open("app/templates/paiements/recharger.html", encoding="utf-8-sig", errors="replace").read()
+
+nouveau = """{% extends "base.html" %}
 {% block title %}Recharger mon compte - TontineSecure{% endblock %}
 {% block content %}
 <div style="max-width:620px;margin:0 auto;" class="fade-in">
@@ -185,4 +187,7 @@ function majBouton(){
   }
 }
 </script>
-{% endblock %}
+{% endblock %}"""
+
+open("app/templates/paiements/recharger.html", "w", encoding="utf-8").write(nouveau)
+print("OK!")
