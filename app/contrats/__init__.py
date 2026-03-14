@@ -213,6 +213,7 @@ def signer_contrat(tontine_id):
     contrat_existant.signe = True
     contrat_existant.signe_le = datetime.utcnow()
     contrat_existant.ip_signature = request.remote_addr
+    profil = Profil.query.filter_by(user_id=current_user.id).first()
     contrat_existant.hash_contrat = secrets.token_hex(32)
     contrat_existant.contenu_html = generer_contenu_html(
         membre_nom=profil.nom_complet if profil else current_user.email,
