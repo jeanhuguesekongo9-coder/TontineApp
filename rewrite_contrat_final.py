@@ -1,4 +1,7 @@
-{% extends "base.html" %}
+﻿import os
+os.makedirs("app/templates/contrats", exist_ok=True)
+
+contrat_html = """{% extends "base.html" %}
 {% block title %}Contrat de participation - TontineSecure{% endblock %}
 {% block content %}
 <div style="max-width:800px;margin:0 auto;" class="fade-in">
@@ -393,4 +396,14 @@ function validerSignature() {
   return confirm('Confirmez-vous la signature électronique de ce contrat ? Cette action est définitive et juridiquement contraignante.');
 }
 </script>
-{% endblock %}
+{% endblock %}"""
+
+open("app/templates/contrats/contrat.html", "w", encoding="utf-8").write(contrat_html)
+print("OK contrat.html réécrit avec 12 articles complets!")
+
+import re
+articles = re.findall(r'Article \d+', contrat_html)
+articles_uniques = sorted(set(articles), key=lambda x: int(x.split()[1]))
+print(f"Articles présents : {len(articles_uniques)}")
+for a in articles_uniques:
+    print(" -", a)
