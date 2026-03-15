@@ -53,7 +53,7 @@
           <div class="col-6">
             <div style="font-size:0.8rem;color:#666;">Votre position</div>
             <div style="font-size:1.1rem;font-weight:700;color:#1a1a2e;">
-              Membre #{{ mt.ordre_collecte if mt.ordre_collecte else 'Non defini' }} sur {{ t.nombre_membres }}
+              Membre #{{ mt.ordre_collecte if mt.ordre_collecte else 'Non défini' }} sur {{ t.nombre_membres }}
             </div>
           </div>
           <div class="col-6">
@@ -91,7 +91,7 @@
       <div class="mb-4">
         <h6 style="color:#1a1a2e;font-weight:700;margin-bottom:12px;">
           👥 Composition du groupe
-          <span style="font-size:0.75rem;color:#999;font-weight:400;margin-left:8px;">Les identites sont confidentielles</span>
+          <span style="font-size:0.75rem;color:#999;font-weight:400;margin-left:8px;">Les identités sont confidentielles</span>
         </h6>
         <div class="row g-2">
           {% for i in range(1, t.nombre_membres + 1) %}
@@ -109,14 +109,14 @@
           {% endfor %}
         </div>
         <div style="background:#f0f8ff;border-radius:10px;padding:12px;margin-top:12px;">
-          <small style="color:#666;">🔐 Pour garantir la confidentialite et la securite de tous les membres, les identites sont masquees. Seule votre position vous est visible.</small>
+          <small style="color:#666;">🔐 Pour garantir la confidentialite et la securite de tous les membres, les identités sont masquées. Seule votre position vous est visible.</small>
         </div>
       </div>
 
       <!-- Penalites du membre -->
       {% if penalites_actives %}
       <div style="background:#fff5f5;border:1px solid #ffcccc;border-radius:12px;padding:15px;margin-bottom:1rem;">
-        <h6 style="color:#e74c3c;font-weight:700;">⚠️ Penalites en cours</h6>
+        <h6 style="color:#e74c3c;font-weight:700;">⚠️ Pénalités en cours</h6>
         {% for pen in penalites_actives %}
         {% if pen.tontine_id == t.id %}
         <div style="font-size:0.9rem;color:#555;margin-bottom:6px;">
@@ -138,7 +138,7 @@
   {% else %}
   <div class="card text-center p-5">
     <div style="font-size:3rem;">🔍</div>
-    <p class="text-muted mt-2">Vous n etes membre d aucune tontine pour le moment.</p>
+    <p class="text-muted mt-2">Vous n'êtes membre d'aucune tontine pour le moment.</p>
     <a href="{{ url_for('tontines.liste') }}" class="btn-or mt-3" style="display:inline-block;padding:10px 25px;">Rejoindre une tontine</a>
   </div>
   {% endfor %}

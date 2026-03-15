@@ -10,7 +10,7 @@
     <div class="col-md-4">
       <div class="card text-center p-3" style="border-left:4px solid #e74c3c;">
         <div style="font-size:1.8rem;font-weight:700;color:#e74c3c;">{{ mises_en_demeure }}</div>
-        <small class="text-muted">Mises en demeure (3+ mois)</small>
+        <small class="text-muted">Mises en demeure (3 mois et plus)</small>
       </div>
     </div>
     <div class="col-md-4">
@@ -87,7 +87,7 @@
                     <form method="POST" action="{{ url_for('admin.annuler_penalite', pen_id=p.id) }}">
                       <div class="modal-body">
                         <p>Penalite <strong>{{ p.reference }}</strong> — {{ p.mois_reference }}</p>
-                        <label class="form-label">Motif de l annulation</label>
+                        <label class="form-label">Motif de l'annulation</label>
                         <textarea name="note" class="form-control" rows="2" placeholder="Ex: Accord amiable..." required></textarea>
                       </div>
                       <div class="modal-footer">
@@ -111,7 +111,7 @@
       {% else %}
       <div class="text-center py-5">
         <div style="font-size:3rem;">✅</div>
-        <p class="text-muted mt-2">Aucune penalite {{ statut.replace("_", " ") }}.</p>
+        <p class="text-muted mt-2">Aucune pénalité {{ statut.replace("_", " ") }}.</p>
       </div>
       {% endif %}
     </div>

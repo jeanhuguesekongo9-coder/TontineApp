@@ -6,8 +6,8 @@
   <p class="page-subtitle">Validez ou rejetez les demandes de recharge</p>
   <div class="mb-4 d-flex gap-2 flex-wrap">
     <a href="?statut=en_attente" class="btn {% if statut == 'en_attente' %}btn-warning{% else %}btn-outline-warning{% endif %}">⏳ En attente</a>
-    <a href="?statut=valide" class="btn {% if statut == 'valide' %}btn-success{% else %}btn-outline-success{% endif %}">✅ Validees</a>
-    <a href="?statut=rejete" class="btn {% if statut == 'rejete' %}btn-danger{% else %}btn-outline-danger{% endif %}">❌ Rejetees</a>
+    <a href="?statut=valide" class="btn {% if statut == 'valide' %}btn-success{% else %}btn-outline-success{% endif %}">✅ Validées</a>
+    <a href="?statut=rejete" class="btn {% if statut == 'rejete' %}btn-danger{% else %}btn-outline-danger{% endif %}">❌ Rejetées</a>
   </div>
   <div class="card">
     <div class="card-body">
@@ -16,11 +16,11 @@
         <table class="table table-hover align-middle">
           <thead style="background:#f8f9fa;">
             <tr>
-              <th>Reference</th>
+              <th>Référence</th>
               <th>Membre</th>
               <th>Reseau</th>
               <th>Montant</th>
-              <th>Ref. Transaction</th>
+              <th>Réf. Transaction</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
@@ -51,7 +51,7 @@
                         <div class="modal-body">
                           <p>Recharge <strong>{{ r.reference }}</strong> — {{ "{:,.0f}".format(r.montant) }} FCFA</p>
                           <label class="form-label">Motif du rejet</label>
-                          <textarea name="note" class="form-control" rows="3" placeholder="Ex: Reference de transaction invalide..." required></textarea>
+                          <textarea name="note" class="form-control" rows="3" placeholder="Ex: Référence de transaction invalide..." required></textarea>
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>

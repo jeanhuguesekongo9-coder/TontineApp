@@ -310,3 +310,50 @@ class Retrait(db.Model):
     def generer_reference():
         import secrets
         return "RET" + secrets.token_hex(6).upper()
+
+class FondsGarantie(db.Model):
+    __tablename__ = "fonds_garantie"
+    id = db.Column(db.Integer, primary_key=True)
+    tontine_id = db.Column(db.Integer, db.ForeignKey("tontines.id"), nullable=False, unique=True)
+    montant = db.Column(db.Float, default=0.0)
+    seuil_activation = db.Column(db.Float, default=0.0)
+    actif = db.Column(db.Boolean, default=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    tontine = db.relationship("Tontine", backref=db.backref("fonds_garantie", uselist=False))
+
+class FraisTransaction(db.Model):
+    __tablename__ = "frais_transactions"
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(30), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("utilisateurs.id"), nullable=False)
+    tontine_id = db.Column(db.Integer, db.ForeignKey("tontines.id"), nullable=True)
+    type_frais = db.Column(db.String(30), nullable=False)
+    montant_base = db.Column(db.Float, nullable=False)
+    taux = db.Column(db.Float, nullable=False)
+    montant_frais = db.Column(db.Float, nullable=False)
+    montant_fonds_garantie = db.Column(db.Float, default=0.0)
+    montant_tontinesecure = db.Column(db.Float, default=0.0)
+    description = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    utilisateur = db.relationship("Utilisateur", backref="frais_transactions", foreign_keys=[user_id])
+
+    @staticmethod
+    def generer_reference():
+        return "FRS" + secrets.token_hex(6).upper()
+
+class FraisAnnuel(db.Model):
+    __tablename__ = "frais_annuels"
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(30), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("utilisateurs.id"), nullable=False)
+    tontine_id = db.Column(db.Integer, db.ForeignKey("tontines.id"), nullable=False)
+    montant = db.Column(db.Float, nullable=False)
+    annee = db.Column(db.Integer, nullable=False)
+    statut = db.Column(db.String(20), default="en_attente")
+    preleve_le = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    utilisateur = db.relationship("Utilisateur", backref="frais_annuels", foreign_keys=[user_id])
+
+    @staticmethod
+    def generer_reference():
+        return "FAN" + secrets.token_hex(6).upper()

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿texte = """# -*- coding: utf-8 -*-
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from ..models import db, Tontine, MembreTontine, Paiement, AuditLog, Notification
@@ -57,3 +57,6 @@ def detail(tontine_id):
 def mes_tontines():
     memberships = MembreTontine.query.filter_by(user_id=current_user.id).all()
     return render_template("tontines/mes_tontines.html", memberships=memberships)
+"""
+open("app/tontines/__init__.py", "w", encoding="utf-8").write(texte)
+print("OK tontines/__init__.py réécrit proprement!")

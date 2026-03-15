@@ -242,22 +242,65 @@ def valider_recharge(recharge_id):
         solde = Solde(user_id=recharge.user_id, montant=0.0)
         db.session.add(solde)
         db.session.flush()
+    # Calcul des frais 1.5% sur la recharge
+    from ..models import FraisTransaction, FondsGarantie, MembreTontine
+    taux_total = 0.015
+    taux_fonds = 0.005
+    taux_tontinesecure = 0.010
+    montant_frais_total = round(recharge.montant * taux_total, 2)
+    montant_fonds = round(recharge.montant * taux_fonds, 2)
+    montant_ts = round(recharge.montant * taux_tontinesecure, 2)
+    montant_net = recharge.montant - montant_frais_total
+
     solde_avant = solde.montant
-    solde.montant += recharge.montant
+    solde.montant += montant_net
     recharge.statut = "valide"
     recharge.valide_par = current_user.id
     recharge.valide_le = datetime.utcnow()
+
+    # Transaction principale (montant net après frais)
     trx = Transaction(
         reference=Transaction.generer_reference(),
         user_id=recharge.user_id,
         type_transaction="recharge",
-        montant=recharge.montant,
+        montant=montant_net,
         sens="credit",
         solde_avant=solde_avant,
         solde_apres=solde.montant,
-        description=f"Recharge via {recharge.reseau.upper()} - Ref: {recharge.reference_transaction}"
+        description=f"Recharge via {recharge.reseau.upper()} — Montant net après frais 1,5 % — Réf : {recharge.reference_transaction}"
     )
     db.session.add(trx)
+
+    # Enregistrement des frais
+    frais = FraisTransaction(
+        reference=FraisTransaction.generer_reference(),
+        user_id=recharge.user_id,
+        type_frais="recharge",
+        montant_base=recharge.montant,
+        taux=1.5,
+        montant_frais=montant_frais_total,
+        montant_fonds_garantie=montant_fonds,
+        montant_tontinesecure=montant_ts,
+        description=f"Frais 1,5 % sur recharge {recharge.reference} — 0,5 % fonds garantie + 1 % TontineSecure"
+    )
+    db.session.add(frais)
+
+    # Alimenter le fonds de garantie de la tontine du membre
+    membership = MembreTontine.query.filter_by(user_id=recharge.user_id, statut="actif").first()
+    if membership:
+        fg = FondsGarantie.query.filter_by(tontine_id=membership.tontine_id).first()
+        if fg:
+            fg.montant += montant_fonds
+            if not fg.actif and fg.montant >= fg.seuil_activation:
+                fg.actif = True
+                notif_admin = Notification(
+                    user_id=current_user.id,
+                    titre="Fonds de garantie activé !",
+                    message=f"Le fonds de garantie de la tontine {membership.tontine_id} a atteint son seuil — la garantie de paiement est maintenant active.",
+                    type_notif="success",
+                    lien="/admin/tableau-de-bord"
+                )
+                db.session.add(notif_admin)
     notif = Notification(
         user_id=recharge.user_id,
         titre="Recharge validee !",

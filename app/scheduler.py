@@ -121,6 +121,73 @@ def appliquer_penalites(app):
         db.session.commit()
         logger.info("Application penalites du 9 terminee.")
 
+
+def prelever_frais_annuels(app):
+    with app.app_context():
+        from .models import db, Solde, Transaction, Notification, MembreTontine, Tontine, FraisAnnuel
+        from datetime import datetime
+        logger.info("Début prélèvement frais annuels de tenue de compte...")
+        annee = datetime.utcnow().year
+        membres = MembreTontine.query.filter_by(statut="actif").all()
+        for m in membres:
+            tontine = Tontine.query.get(m.tontine_id)
+            if not tontine or tontine.statut != "en_cours":
+                continue
+            deja = FraisAnnuel.query.filter_by(
+                user_id=m.user_id,
+                tontine_id=tontine.id,
+                annee=annee
+            ).first()
+            if deja:
+                continue
+            montant_frais = round(tontine.montant_panier * 0.01, 2)
+            solde = Solde.query.filter_by(user_id=m.user_id).first()
+            frais = FraisAnnuel(
+                reference=FraisAnnuel.generer_reference(),
+                user_id=m.user_id,
+                tontine_id=tontine.id,
+                montant=montant_frais,
+                annee=annee
+            )
+            db.session.add(frais)
+            if solde and solde.montant >= montant_frais:
+                solde_avant = solde.montant
+                solde.montant -= montant_frais
+                trx = Transaction(
+                    reference=Transaction.generer_reference(),
+                    user_id=m.user_id,
+                    tontine_id=tontine.id,
+                    type_transaction="frais_annuel",
+                    montant=montant_frais,
+                    sens="debit",
+                    solde_avant=solde_avant,
+                    solde_apres=solde.montant,
+                    description=f"Frais annuels de tenue de compte {annee} — Tontine {tontine.code} — 1 % du panier"
+                )
+                db.session.add(trx)
+                frais.statut = "preleve"
+                frais.preleve_le = datetime.utcnow()
+                notif = Notification(
+                    user_id=m.user_id,
+                    titre="Frais annuels prélevés",
+                    message=f"Les frais annuels de tenue de compte {annee} de {montant_frais:,.0f} FCFA ont été prélevés (1 % du panier — tontine {tontine.code}).",
+                    type_notif="info",
+                    lien="/paiements/"
+                )
+                db.session.add(notif)
+            else:
+                notif = Notification(
+                    user_id=m.user_id,
+                    titre="Frais annuels — Solde insuffisant",
+                    message=f"Votre solde est insuffisant pour les frais annuels de tenue de compte {annee} ({montant_frais:,.0f} FCFA). Veuillez recharger.",
+                    type_notif="warning",
+                    lien="/paiements/recharger"
+                )
+                db.session.add(notif)
+            logger.info(f"Frais annuel: user {m.user_id}, tontine {tontine.id}, montant {montant_frais}")
+        db.session.commit()
+        logger.info("Prélèvement frais annuels terminé.")
+
 def init_scheduler(app):
     scheduler = BackgroundScheduler(timezone="Africa/Abidjan")
     scheduler.add_job(
@@ -141,6 +208,16 @@ def init_scheduler(app):
         minute=1,
         id="penalites_retard"
     )
+    scheduler.add_job(
+        func=prelever_frais_annuels,
+        args=[app],
+        trigger="cron",
+        month=1,
+        day=1,
+        hour=1,
+        minute=0,
+        id="frais_annuels"
+    )
     scheduler.start()
-    logger.info("Scheduler demarre - debit le 5, penalites le 9 de chaque mois")
+    logger.info("Scheduler démarré — débit le 5, pénalités le 9, frais annuels le 1er janvier")
     return scheduler
