@@ -83,7 +83,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('kyc.soumettre') }}">Mon KYC</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('paiements.dashboard') }}">💰 Mon Portefeuille</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('paiements.ma_tontine') }}">🔒 Ma Tontine</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('paiements.mes_retraits') }}">💸 Mes Retraits</a></li>
+        
         <li class="nav-item"><a class="nav-link" href="{{ url_for('contrats.mes_contrats') }}">📄 Mes Contrats</a></li>
         {% if notifications_non_lues %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('main.tableau_de_bord') }}">Notifications <span class="notif-badge">{{ notifications_non_lues|length }}</span></a></li>
