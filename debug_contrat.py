@@ -1,18 +1,11 @@
-﻿import os
-os.environ["DATABASE_URL"] = "postgresql://postgres.izjnrecwbwmuecqtpmai:Jeanhugue200@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
-from app import create_app
-app = create_app("development")
-app.config["TESTING"] = True
-with app.test_client() as c:
-    with app.app_context():
-        from app.models import Utilisateur
-        u = Utilisateur.query.filter_by(role="membre").first()
-        print("Membre trouve:", u.email if u else "AUCUN")
-        if u:
-            with c.session_transaction() as sess:
-                sess["_user_id"] = str(u.id)
-                sess["_fresh"] = True
-            r = c.post("/contrats/signer/1")
-            print("Status:", r.status_code)
-            if r.status_code == 500:
-                print("ERREUR:", r.data.decode("utf-8")[:800])
+﻿import re
+content = open("app/contrats/__init__.py", encoding="utf-8-sig", errors="replace").read()
+articles = re.findall(r'<h2>Article \d+', content)
+print(f"Nombre d articles dans le CODE : {len(articles)}")
+for a in articles:
+    print(" -", a)
+
+# Verifier si les nouveaux articles sont presents
+print("\nArticle 10 frais present :", "Frais de service TontineSecure" in content)
+print("Article 11 fonds garantie present :", "Fonds de garantie et conditions" in content)
+print("Article 12 droit applicable present :", "Article 12" in content)
