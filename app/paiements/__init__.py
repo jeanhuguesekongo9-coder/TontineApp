@@ -7,23 +7,25 @@ from ..models import db, Solde, Recharge, Transaction, Notification
 
 paiements = Blueprint("paiements", __name__)
 
+TAUX_FRAIS = 0.015  # 1.5% de frais sur chaque recharge
+
 RESEAUX = {
     "wave_sn": {
-        "nom": "Wave Senegal",
+        "nom": "Wave Sénégal",
         "type": "link",
         "base_url": "https://pay.wave.com/m/M_sn_XhdrMMWqgQ6I/c/sn/?amount=",
         "numero": "+221 78 538 53 10",
         "couleur": "#1DC8EE",
     },
     "wave_ci": {
-        "nom": "Wave Cote d Ivoire",
+        "nom": "Wave Côte d'Ivoire",
         "type": "link",
         "base_url": "https://pay.wave.com/m/M_sn_XhdrMMWqgQ6I/c/sn/?amount=",
         "numero": "+225 05 84 02 23 23",
         "couleur": "#1DC8EE",
     },
     "orange_sn": {
-        "nom": "Orange Money Senegal",
+        "nom": "Orange Money Sénégal",
         "type": "ussd",
         "ussd_pattern": "*144*1*221785385310*{montant}#",
         "numero": "+221 78 538 53 10",
@@ -37,7 +39,7 @@ RESEAUX = {
         "couleur": "#FF6600",
     },
     "mtn_ci": {
-        "nom": "MTN CI",
+        "nom": "MTN MoMo CI",
         "type": "ussd",
         "ussd_pattern": "*133*1*2250584022323*{montant}#",
         "numero": "+225 05 84 02 23 23",
@@ -53,6 +55,10 @@ def get_ou_creer_solde(user_id):
         db.session.commit()
     return solde
 
+def calculer_frais(montant):
+    frais = round(montant * TAUX_FRAIS)
+    return {"net": montant, "frais": frais, "total": montant + frais}
+
 @paiements.route("/")
 @login_required
 def dashboard():
@@ -65,35 +71,37 @@ def dashboard():
 @login_required
 def recharger():
     if request.method == "POST":
-        montant = float(request.form.get("montant", 0))
+        montant_net = float(request.form.get("montant", 0))
         reseau = request.form.get("reseau", "")
         numero = request.form.get("numero_telephone", "").strip()
         reference_transaction = request.form.get("reference_transaction", "").strip()
         capture = request.files.get("capture")
-        if montant < 1000:
+        if montant_net < 1000:
             flash("Montant minimum 1 000 FCFA.", "danger")
             return render_template("paiements/recharger.html", reseaux=RESEAUX)
         if not reseau or reseau not in RESEAUX:
-            flash("Reseau invalide.", "danger")
+            flash("Réseau invalide.", "danger")
             return render_template("paiements/recharger.html", reseaux=RESEAUX)
         if not numero:
-            flash("Numero de telephone obligatoire.", "danger")
+            flash("Numéro de téléphone obligatoire.", "danger")
             return render_template("paiements/recharger.html", reseaux=RESEAUX)
-        capture_filename = None
-        if capture and capture.filename:
-            import secrets
-            ext = capture.filename.rsplit('.', 1)[-1].lower()
-            if ext not in ['jpg', 'jpeg', 'png', 'pdf']:
-                flash("Format capture invalide. JPG, PNG ou PDF uniquement.", "danger")
-                return render_template("paiements/recharger.html", reseaux=RESEAUX)
-            capture_filename = f"capture_{secrets.token_hex(8)}.{ext}"
-            upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'captures')
-            os.makedirs(upload_dir, exist_ok=True)
-            capture.save(os.path.join(upload_dir, capture_filename))
+        if not capture or not capture.filename:
+            flash("La capture du transfert est obligatoire.", "danger")
+            return render_template("paiements/recharger.html", reseaux=RESEAUX)
+        ext = capture.filename.rsplit('.', 1)[-1].lower()
+        if ext not in ['jpg', 'jpeg', 'png', 'pdf']:
+            flash("Format capture invalide. JPG, PNG ou PDF uniquement.", "danger")
+            return render_template("paiements/recharger.html", reseaux=RESEAUX)
+        import secrets
+        capture_filename = f"capture_{secrets.token_hex(8)}.{ext}"
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'captures')
+        os.makedirs(upload_dir, exist_ok=True)
+        capture.save(os.path.join(upload_dir, capture_filename))
+        calc = calculer_frais(montant_net)
         recharge = Recharge(
             reference=Recharge.generer_reference(),
             user_id=current_user.id,
-            montant=montant,
+            montant=montant_net,
             reseau=reseau,
             numero_telephone=numero,
             reference_transaction=reference_transaction or "A_VERIFIER",
@@ -105,13 +113,13 @@ def recharger():
         notif = Notification(
             user_id=current_user.id,
             titre="Recharge en attente de validation",
-            message=f"Votre recharge de {montant:,.0f} FCFA via {RESEAUX[reseau]['nom']} est en cours de verification. Validation sous 24h.",
+            message=f"Votre recharge de {montant_net:,.0f} FCFA nets (+ {calc['frais']:,.0f} FCFA de frais) via {RESEAUX[reseau]['nom']} est en cours de vérification. Validation sous 24h maximum.",
             type_notif="info",
             lien=url_for("paiements.dashboard")
         )
         db.session.add(notif)
         db.session.commit()
-        flash("Recharge soumise ! Verification par l admin sous 24h.", "success")
+        flash(f"Recharge de {montant_net:,.0f} FCFA soumise avec succès ! Vérification par notre équipe sous 24h.", "success")
         return redirect(url_for("paiements.dashboard"))
     return render_template("paiements/recharger.html", reseaux=RESEAUX)
 
@@ -120,6 +128,7 @@ def recharger():
 def facture(reference):
     transaction = Transaction.query.filter_by(reference=reference, user_id=current_user.id).first_or_404()
     return render_template("paiements/facture.html", transaction=transaction)
+
 @paiements.route("/ma-tontine")
 @login_required
 def ma_tontine():
@@ -132,84 +141,3 @@ def ma_tontine():
     return render_template("paiements/ma_tontine.html",
         memberships=memberships,
         penalites_actives=penalites_actives)
-@paiements.route("/retirer", methods=["GET", "POST"])
-@login_required
-def retirer():
-    from ..models import Retrait
-    solde = get_ou_creer_solde(current_user.id)
-    # Verifier si un retrait est déjà en attente
-    retrait_en_cours = Retrait.query.filter_by(
-        user_id=current_user.id,
-        statut="en_attente"
-    ).first()
-    if request.method == "POST":
-        if retrait_en_cours:
-            flash("Vous avez déjà un retrait en attente. Attendez qu'il soit traité.", "warning")
-            return redirect(url_for("paiements.mes_retraits"))
-        montant = float(request.form.get("montant", 0))
-        reseau = request.form.get("reseau", "").strip()
-        numero = request.form.get("numero_telephone", "").strip()
-        if montant < 1000:
-            flash("Montant minimum de retrait : 1 000 FCFA.", "danger")
-            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
-        if montant > solde.montant:
-            flash(f"Solde insuffisant. Votre solde disponible est de {solde.montant:,.0f} FCFA.", "danger")
-            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
-        if not reseau or reseau not in RESEAUX:
-            flash("Réseau invalide.", "danger")
-            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
-        if not numero:
-            flash("Numéro de téléphone obligatoire.", "danger")
-            return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
-        retrait = Retrait(
-            reference=Retrait.generer_reference(),
-            user_id=current_user.id,
-            montant=montant,
-            reseau=reseau,
-            numero_telephone=numero,
-            statut="en_attente"
-        )
-        db.session.add(retrait)
-        notif = Notification(
-            user_id=current_user.id,
-            titre="Demande de retrait reçue",
-            message=f"Votre demande de retrait de {montant:,.0f} FCFA via {RESEAUX[reseau]['nom']} vers le {numero} est en cours de traitement. Délai : 24h.",
-            type_notif="info",
-            lien=url_for("paiements.mes_retraits")
-        )
-        db.session.add(notif)
-        db.session.commit()
-        flash(f"Demande de retrait de {montant:,.0f} FCFA soumise ! Traitement sous 24h.", "success")
-        return redirect(url_for("paiements.mes_retraits"))
-    return render_template("paiements/retirer.html", solde=solde, reseaux=RESEAUX, retrait_en_cours=retrait_en_cours)
-
-@paiements.route("/mes-retraits")
-@login_required
-def mes_retraits():
-    from ..models import Retrait
-    retraits = Retrait.query.filter_by(user_id=current_user.id).order_by(Retrait.created_at.desc()).all()
-    solde = get_ou_creer_solde(current_user.id)
-    return render_template("paiements/mes_retraits.html", retraits=retraits, solde=solde, reseaux=RESEAUX)
-
-@paiements.route("/retraits/<int:retrait_id>/annuler", methods=["POST"])
-@login_required
-def annuler_retrait(retrait_id):
-    from ..models import Retrait
-    retrait = Retrait.query.filter_by(id=retrait_id, user_id=current_user.id).first_or_404()
-    if retrait.statut != "en_attente":
-        flash("Ce retrait ne peut plus être annulé.", "warning")
-        return redirect(url_for("paiements.mes_retraits"))
-    retrait.statut = "annule"
-    retrait.traite_le = datetime.utcnow()
-    retrait.note_admin = "Annulé par le membre"
-    notif = Notification(
-        user_id=current_user.id,
-        titre="Retrait annulé",
-        message=f"Votre demande de retrait de {retrait.montant:,.0f} FCFA a été annulée.",
-        type_notif="info",
-        lien=url_for("paiements.mes_retraits")
-    )
-    db.session.add(notif)
-    db.session.commit()
-    flash("Demande de retrait annulée.", "info")
-    return redirect(url_for("paiements.mes_retraits"))
